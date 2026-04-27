@@ -1,0 +1,10 @@
+{
+    "CVE-ID": "CVE-2017-6966",
+    "CWE-ID": "CWE-416: Use After Free",
+    "project": "binutils-gdb",
+    "version": "53f7e8e",
+    "patch": "f84ce13",
+    "file": "binutils/readelf.c",
+    "source": "free(symtab);",
+    "sink": "saved_sym->st_value);"
+}
