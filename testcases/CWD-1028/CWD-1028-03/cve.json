@@ -1,0 +1,10 @@
+{
+    "CVE-ID": "CVE-2018-7208",
+    "CWE-ID": "CWE-20: Improper Input Validation",
+    "project": "binutils-gdb",
+    "version": "0d5e2f6",
+    "patch": "eb77f6a",
+    "file": "bfd/coffgen.c",
+    "source": "auxent->u.auxent.x_sym.x_tagndx.p = \\ table_base + auxent->u.auxent.x_sym.x_tagndx.l;",
+    "sink": "a->u.auxent.x_sym.x_tagndx.l = a->u.auxent.x_sym.x_tagndx.p->offset;"
+}
