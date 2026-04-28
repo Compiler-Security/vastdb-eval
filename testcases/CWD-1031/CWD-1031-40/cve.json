@@ -1,0 +1,10 @@
+{
+    "CVE-ID": "CVE-2017-15023",
+    "CWE-ID": "CWE-476 Null Pointer Dereference",
+    "project": "binutils-gdb",
+    "version": "57a024f",
+    "patch": "c361faa",
+    "file": "bfd/dwarf2.c",
+    "source": "struct fileinfo fe;",
+    "sink": "if (!IS_ABSOLUTE_PATH(filename)) {"
+}
