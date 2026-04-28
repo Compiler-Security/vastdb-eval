@@ -1,0 +1,10 @@
+{
+    "CVE-ID": "CVE-2025-50949",
+    "CWE-ID": "CWE-401 Missing Release of Memory after Effective Lifetime",
+    "project": "fontforge",
+    "version": "4d297e9",
+    "patch": "701e4d7",
+    "file": "gdraw/gaskdlg.c",
+    "source": "buf = vsmprintf(question, ap);",
+    "sink": "return( NULL );"
+}
