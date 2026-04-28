@@ -1,0 +1,10 @@
+{
+    "CVE-ID": "CVE-2025-63655",
+    "CWE-ID": "CWE-476 Null Pointer Dereference",
+    "project": "monkey",
+    "version": "f37e984",
+    "patch": "bf64d5a",
+    "file": "mk_server/mk_http.c",
+    "source": "buffer = mk_string_copy_substr(sr->range.data, eq_pos + 1, sep_pos);",
+    "sink": "sh->ranges[0] = (unsigned long) atol(buffer);"
+}
