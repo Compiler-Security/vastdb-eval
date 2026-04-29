@@ -1,0 +1,10 @@
+{
+    "CVE-ID": "CVE-2025-28164",
+    "CWE-ID": "CWE-401 Missing Release of Memory after Effective Lifetime",
+    "project": "libpng",
+    "version": "b525503",
+    "patch": "fce5f2a",
+    "file": "contrib/libtests/pngimage.c",
+    "source": "dp->read_pp = pp = png_create_read_struct(PNG_LIBPNG_VER_STRING, dp,",
+    "sink": "return 99;"
+}
