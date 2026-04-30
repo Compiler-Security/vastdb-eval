@@ -1,0 +1,10 @@
+{
+    "CVE-ID": "CVE-2020-21817",
+    "CWE-ID": "CWE-476 NULL Pointer Dereference",
+    "project": "libredwg",
+    "version": "7b9cb82",
+    "patch": "b7fa220",
+    "file": "programs/dwg2SVG.c",
+    "source": "_obj->text_value = bit_read_TV (dat);",
+    "sink": "escaped = htmlescape (text->text_value, (int)dwg->header.codepage);"
+}

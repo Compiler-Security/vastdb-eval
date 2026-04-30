@@ -1,0 +1,10 @@
+{
+    "CVE-ID": "CVE-2021-39521",
+    "CWE-ID": "CWE-476 NULL Pointer Dereference",
+    "project": "libredwg",
+    "version": "bacd017",
+    "patch": "66a3484",
+    "file": "src/decode_r2007.c",
+    "source": "dat->byte += (bits >> 3);",
+    "sink": "byte = dat->chain[dat->byte];"
+}
