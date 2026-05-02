@@ -202,7 +202,8 @@ async function startEventRecorder(client, query, sessionId, realtime) {
     },
     stop: async () => {
       controller.abort()
-      await recording
+      const timeout = new Promise((resolve) => setTimeout(resolve, 5000))
+      await Promise.race([recording, timeout])
       await Promise.all([
         eventsStream ? new Promise((resolve) => eventsStream.end(resolve)) : null,
         textStream ? new Promise((resolve) => textStream.end(resolve)) : null,
@@ -288,6 +289,12 @@ async function main() {
     }))
   } finally {
     opencode.server.close()
+    // Safety net: if the event loop still has lingering handles after 3s, force exit.
+    const forceExit = setTimeout(() => {
+      console.error("Force exiting opencode runner after server close")
+      process.exit(0)
+    }, 3000)
+    forceExit.unref()
   }
 }
 

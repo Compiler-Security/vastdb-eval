@@ -320,6 +320,7 @@ def run_process(
     )
     try:
         stdout, stderr = proc.communicate(timeout=timeout)
+        kill_process_group(proc)
         return subprocess.CompletedProcess(args, proc.returncode, stdout, stderr)
     except subprocess.TimeoutExpired:
         kill_process_group(proc)
@@ -341,6 +342,14 @@ def kill_process_group(proc: subprocess.Popen[str]) -> None:
         return
     except subprocess.TimeoutExpired:
         pass
+    try:
+        os.killpg(proc.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        return
+    try:
+        proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        pass
 
 
 def run_cleanup_process(args: list[str], cwd: Path, timeout: int = 10) -> subprocess.CompletedProcess[str]:
@@ -353,14 +362,6 @@ def run_cleanup_process(args: list[str], cwd: Path, timeout: int = 10) -> subpro
         return run_process(args, cwd, timeout=timeout)
     finally:
         signal.signal(signal.SIGINT, previous_handler)
-    try:
-        os.killpg(proc.pid, signal.SIGKILL)
-    except ProcessLookupError:
-        return
-    try:
-        proc.wait(timeout=5)
-    except subprocess.TimeoutExpired:
-        pass
 
 
 def docker_inspect_running(container: str) -> bool | None:
@@ -533,7 +534,7 @@ def make_opencode_config(
         if not isinstance(loc_mcp, dict):
             raise EvalError("config", f"{config_path} field 'mcp.loc-mcp-server' must be an object")
         mcp_env = stringify_env(loc_mcp.get("environment", {}) if isinstance(loc_mcp.get("environment"), dict) else {})
-        mcp_env["NEO4J_URL"] = f"bolt://localhost:{case.bolt_port}"
+        mcp_env["NEO4J_URI"] = f"bolt://localhost:{case.bolt_port}"
         loc_mcp["environment"] = mcp_env
     return config
 
