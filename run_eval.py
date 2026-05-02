@@ -493,7 +493,9 @@ def write_database(case: TestCase, cfg: dict[str, Any]) -> None:
         "-DCMAKE_C_COMPILER=wllvm",
         "-DCMAKE_CXX_COMPILER=wllvm++",
     ]
-    proc = run_process(configure, case.work, env={"WLLVM_CONFIGURE_ONLY": "1"})
+    configure_env = dict(vast_env)
+    configure_env["WLLVM_CONFIGURE_ONLY"] = "1"
+    proc = run_process(configure, case.work, env=configure_env)
     if proc.returncode != 0:
         raise EvalError("db", f"cmake configure failed:\n{proc.stderr or proc.stdout}")
 

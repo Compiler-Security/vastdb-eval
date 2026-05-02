@@ -138,19 +138,17 @@ cmake -S $work/bad -B build -DCMAKE_C_COMPILER=wllvm -DCMAKE_CXX_COMPILER=wllvm+
 cmake --build build
 ```
 
-configure 阶段只额外设置：
+configure 阶段会合并 `configs/env.json` 的 `vast` 字段，并额外设置：
 
 ```text
 WLLVM_CONFIGURE_ONLY=1
 ```
 
-build 阶段会额外设置：
+build 阶段同样会合并 `configs/env.json` 的 `vast` 字段，并额外设置：
 
 ```text
 VASTDB_NEO4J_ADDRESS=neo4j:@localhost:<bolt_port>
 ```
-
-build 阶段会合并 `configs/env.json` 的 `vast` 字段。
 
 ## Agent 配置
 
