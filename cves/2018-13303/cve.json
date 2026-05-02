@@ -1,8 +1,0 @@
-{
-    "CVE-ID": "CVE-2018-13303",
-    "CWE-ID": "CWE-476 NULL Pointer Dereference",
-    "project": "ffmpeg",
-    "version": "",
-    "patch": "00e8181",
-    "location": "UPDATE_CACHE(re, s);"
-}

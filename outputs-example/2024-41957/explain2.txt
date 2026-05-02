@@ -1,1 +1,0 @@
-The vulnerability arises because `mark_forget_file` (called from `close_buffer`) can free `tagname` via `tagstack_clear_entry` when removing a tag entry, and later `win_free` independently frees the same memory in its own tag-stack cleanup loop, causing a double free.

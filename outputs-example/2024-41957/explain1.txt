@@ -1,1 +1,0 @@
-The first free occurs when `free_wininfo(wip2)` calls `free_wininfo` which internally frees `tagname`. Later, in the same function, the loop `for (i = 0; i < wp->w_tagstacklen; ++i)` again frees `wp->w_tagstack[i].tagname`, leading to a double free.

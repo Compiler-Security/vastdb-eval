@@ -1,1 +1,0 @@
-The vulnerability occurs because `pbkdf2_salt` is assigned via `pbkdf2_param->salt->value.octet_string` without a null check, and is subsequently dereferenced at `pbkdf2_salt->data` in the `PKCS5_PBKDF2_HMAC` call, leading to a NULL pointer dereference if `pbkdf2_param->salt` or its `octet_string` component is NULL.

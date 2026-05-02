@@ -1,7 +1,0 @@
-static int get_c4x4_set(int qp, int is_intra)
-{
-    if (is_intra)
-        return rv60_qp_to_idx[qp + 32];
-    else
-        return rv60_qp_to_idx[qp];
-}

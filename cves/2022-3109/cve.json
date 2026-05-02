@@ -1,8 +1,0 @@
-{
-    "CVE-ID": "CVE-2022-3109",
-    "CWE-ID": "CWE-476 NULL Pointer Dereference",
-    "project": "ffmpeg",
-    "version": "",
-    "patch": "656cb04",
-    "location": "uint8_t *temp = s->edge_emu_buffer;"
-}

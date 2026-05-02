@@ -1,8 +1,0 @@
-{
-  "CVE-ID": "CVE-2024-35368",
-  "CWE-ID": "CWE-415 Double Free",
-  "project": "ffmpeg",
-  "version": "",
-  "patch": "4513300",
-  "location": "mpp_frame_deinit(&framecontext->frame);"
-}

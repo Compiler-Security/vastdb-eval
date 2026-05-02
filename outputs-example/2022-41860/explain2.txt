@@ -1,1 +1,0 @@
-The vulnerability occurs because `fr_pair_afrom_num` returns NULL if `dict_attrbyvalue` fails to find a matching attribute, but the return value is not checked before dereferencing `newvp` in the assignment `newvp->vp_length = eapsim_len-2;`. This leads directly to a NULL pointer dereference when `eapsim_attribute+PW_EAP_SIM_BASE` maps to an undefined dictionary attribute.

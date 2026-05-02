@@ -1,9 +1,0 @@
-void dbAdd(redisDb *db, robj *key, robj *val) {
-    sds copy = sdsdup(key->ptr);
-    dictEntry *de = dictAddRaw(db->dict, copy, NULL);
-    serverAssertWithInfo(NULL, key, de != NULL);
-    dictSetVal(db->dict, de, val);
-    signalKeyAsReady(db, key, val->type);
-    if (server.cluster_enabled) slotToKeyAddEntry(de, db);
-    notifyKeyspaceEvent(NOTIFY_NEW,"new",key,db->id);
-}

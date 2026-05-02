@@ -1,1 +1,0 @@
-The first free occurs at `VIM_CLEAR(buf->b_fname)` after a failed write, which frees the memory aliased by `buf->b_sfname` due to `buf_set_name()` setting `buf->b_fname = buf->b_sfname` when initializing to "Untitled". This leads to a double free when `VIM_CLEAR(buf->b_sfname)` is subsequently called in the same cleanup block.

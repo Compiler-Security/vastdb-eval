@@ -1,8 +1,0 @@
-{
-  "CVE-ID": "CVE-2024-31582",
-  "CWE-ID": "CWE-122 Heap-based Buffer Overflow",
-  "project": "ffmpeg",
-  "version": "",
-  "patch": "99debe5",
-  "location": "buf[x] = color;"
-}

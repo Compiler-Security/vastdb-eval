@@ -1,8 +1,0 @@
-{
-    "CVE-ID": "CVE-2021-38291",
-    "CWE-ID": "CWE-617 Reachable Assertion",
-    "project": "ffmpeg",
-    "version": "",
-    "patch": "e01d306",
-    "location": "av_assert0(duration >= 0);"
-}

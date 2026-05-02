@@ -1,1 +1,0 @@
-The double free occurs because the `entry` object is explicitly deleted by `deleteOlsonToMetaMappingEntry(entry)` (which frees the memory) and subsequently freed again by `uprv_free(entry)`. This happens in the error handling path where `U_FAILURE(status)` is true immediately after the `UVector` constructor fails.

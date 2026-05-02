@@ -1,1 +1,0 @@
-The vulnerability occurs because `node->v` is used after being freed in the `else if` condition: when `nodeDestruct(node)` frees the memory pointed to by `node->v` in the `else` branch, a subsequent iteration can enter the `else if` branch and dereference the already-freed `node->v` pointer via `tr_variantIsContainer(node->v) && node->childIndex < node->v->val.l.count`.

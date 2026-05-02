@@ -1,1 +1,0 @@
-The vulnerability occurs because `DestroyImage` frees `msl_image` and returns `NULL`, but the assignment `msl_image=DestroyImage(msl_image);` then assigns the NULL pointer to `msl_image` after the free. If `ProcessMSLScript` modifies `&msl_image` to point to a new location that is later referenced after this assignment, it could lead to a use after free.

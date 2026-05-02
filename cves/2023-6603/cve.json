@@ -1,8 +1,0 @@
-{
-    "CVE-ID": "CVE-2023-6603",
-    "CWE-ID": "CWE-99 Improper Control of Resource Identifiers ('Resource Injection')",
-    "project": "ffmpeg",
-    "version": "",
-    "patch": "28c8358",
-    "location": "cur_init_section->key_type = key_type;"
-}

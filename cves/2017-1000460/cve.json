@@ -1,8 +1,0 @@
-{
-    "CVE-ID": "CVE-2017-1000460",
-    "CWE-ID": "CWE-476 NULL Pointer Dereference",
-    "project": "ffmpeg",
-    "version": "",
-    "patch": "76f7e70",
-    "location": "UPDATE_CACHE(re, gb);"
-}

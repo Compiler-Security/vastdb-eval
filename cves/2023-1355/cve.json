@@ -1,8 +1,0 @@
-{
-    "CVE-ID": "CVE-2023-1355",
-    "CWE-ID": "CWE-476 NULL Pointer Dereference",
-    "project": "vim",
-    "version": "",
-    "patch": "d13dd30",
-    "location": "cl->class_class_function_count"
-}

@@ -1,1 +1,0 @@
-The vulnerability occurs because `ssl3_get_cipher_by_char(p)` can return NULL if the `OBJ_bsearch_ssl_cipher_id` calls fail to find a match in the cipher tables, and the returned null pointer is dereferenced without a prior check in `ciph->algorithm2`.

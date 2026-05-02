@@ -1,1 +1,0 @@
-The vulnerability occurs because the loop iterates one position beyond the allocated bounds (`i <= number_threads` instead of `i < number_threads`), causing an attempt to release an invalid pointer at `weights[number_threads]` that lies outside the allocated memory for the array.

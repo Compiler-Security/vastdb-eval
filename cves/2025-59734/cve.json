@@ -1,8 +1,0 @@
-{
-    "CVE-ID": "CVE-2025-59734",
-    "CWE-ID": "CWE-416 Use After Free",
-    "project": "ffmpeg",
-    "version": "",
-    "patch": "d311382",
-    "location": "uint8_t *sf = ctx->stored_frame;"
-}

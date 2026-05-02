@@ -1,8 +1,0 @@
-{
-  "CVE-ID": "CVE-2023-36824",
-  "CWE-ID": "CWE-122 Heap-based Buffer Overflow",
-  "project": "redis",
-  "version": "",
-  "patch": "pull/12380",
-  "location": "keys[k].pos = i;"
-}

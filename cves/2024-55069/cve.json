@@ -1,8 +1,0 @@
-{
-  "CVE-ID": "CVE-2024-55069",
-  "CWE-ID": "CWE-476 NULL Pointer Dereference",
-  "project": "ffmpeg",
-  "version": "",
-  "patch": "4cc1495",
-  "location": "if (!i && !j && audio_element->layers[0].substream_count == 1)"
-}

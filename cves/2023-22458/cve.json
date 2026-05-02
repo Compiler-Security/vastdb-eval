@@ -1,8 +1,0 @@
-{
-  "CVE-ID": "CVE-2023-22458",
-  "CWE-ID": "CWE-190 Integer Overflow or Wraparound",
-  "project": "redis",
-  "version": "",
-  "patch": "16f408b",
-  "location": "addReplyProto(c,shared.mbulkhdr[ll]->ptr,hdr_len);"
-}

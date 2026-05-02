@@ -1,8 +1,0 @@
-{
-    "CVE-ID": "CVE-2017-9608",
-    "CWE-ID": "CWE-476 NULL Pointer Dereference",
-    "project": "ffmpeg",
-    "version": "",
-    "patch": "0a709e2",
-    "location": "pc->state   = pc->state   << 8 | pc->buffer[pc->last_index + next];"
-}

@@ -1,9 +1,0 @@
-{
-    "CVE-ID": "2025-11187",
-    "CWE-ID": "CWE-476 NULL Pointer Dereference",
-    "version": "openssl-3.6.0",
-    "patch": "8caf359",
-    "file": "crypto/pkcs12/p12_mutl.c",
-    "line": 141,
-    "location": "if (PKCS5_PBKDF2_HMAC(pass, passlen, pbkdf2_salt->data, pbkdf2_salt->length,"
-}

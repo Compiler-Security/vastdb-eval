@@ -1,8 +1,0 @@
-{
-  "CVE-ID": "CVE-2020-4067",
-  "CWE-ID": "CWE-665 Improper Initialization",
-  "project": "coturn",
-  "version": "",
-  "patch": "170da11",
-  "location": "int rc = ssl_send(s, (char*)buf_elem->buf.buf + buf_elem->buf.offset - buf_elem->buf.coffset, (size_t)buf_elem->buf.len, ((s->e) && s->e->verbose));"
-}

@@ -1,6 +1,0 @@
-{
-    "415": "- `{location}` is the second free. Locate the first free and the path to the second free.",
-    "416": "- `{location}` is the use. Locate the free and the path to the use.",
-    "476": "- `{location}` is the dereference. Locate the null pointer assignment and the path to the dereference.",
-    "763": "- `{location}` is the pointer release. Locate where the pointer is being invalidated."
-}

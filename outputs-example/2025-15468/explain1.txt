@@ -1,1 +1,0 @@
-The vulnerability occurs because `ssl3_get_cipher_by_char(p)` can return a null pointer, which is then assigned to `ciph`, and this null pointer is dereferenced in the condition `ciph->algorithm2` without a prior null check.

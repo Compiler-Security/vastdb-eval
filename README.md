@@ -1,51 +1,75 @@
 ## 项目简介
 
-本项目提供了一组用于评估大模型漏洞解释能力的测试集。每个测试用例对应一个上下文长度适中的 CVE 实例，旨在对比大模型在“无上下文”和“有上下文”两种条件下对漏洞的理解与解释能力。
+本项目用于批量评估大模型对 C/C++ 漏洞测试用例的根因分析能力。每个测试用例包含漏洞版本 `bad/`、修复版本 `good/` 和漏洞元信息 `cve.json`。
 
-在测试过程中，大模型可以通过 VAST DB 获取与漏洞相关的上下文信息，从而生成更加完整和准确的漏洞分析结果。
+实验会对同一份 `bad/` 代码运行两类 agent：
+
+1. baseline agent：禁用 LSP，不使用 VAST DB/MCP。
+2. vastdb agent：禁用 LSP，可使用 `loc-mcp-server` 和 VAST DB skill 获取调用链或数据流证据。
+
+最后由 judge agent 对两份分析结果进行结构化评分。实验需求和输出含义见 [doc/doc.md](doc/doc.md)。
 
 ---
 
 ## 项目结构
 
-项目目录结构如下：
-
-- `testcases/`：测试用例集合，每个子目录对应一个漏洞
-  - `bad`：有漏洞的编译单元
-  - `good`：无漏洞的编译单元
-  - `cve.json`：漏洞元信息，包括：
-    - CVE-ID  
-    - CWE-ID  
-    - 所属项目  
-    - 受影响版本  
-    - patch
-    - 漏洞位置等  
-
-- `test.py`：测试脚本  
-  用于调用大模型，在以下两种条件下生成漏洞解释：
-  1. 无上下文信息  
-  2. 使用 VAST DB 提供的上下文信息  
-
-- `configs/`：模型配置文件，用于指定测试时所使用的大模型
-
-- `outputs-example/`：参考实验结果
-  -  `explain1.txt`：无上下文条件下的漏洞解释  
-  -  `explain2.txt`：带上下文条件下的漏洞解释  
+- `run_eval.py`：实验入口脚本。
+- `scripts/opencode_runner.mjs`：opencode SDK runner，由 `run_eval.py` 调用。
+- `testcases/`：测试用例集合。
+  - `bad/`：漏洞版本编译单元。
+  - `good/`：修复版本编译单元。
+  - `cve.json`：漏洞元信息。
+- `configs/`：本机运行配置。
+  - `*.json.example`：可提交的示例配置。
+  - `*.json`：本机真实配置，包含密钥或本机路径，默认被 `.gitignore` 忽略。
+- `prompts/`：baseline、vastdb、judge 的 prompt 和 judge schema。
+- `skills/`：VAST DB schema skill。
+- `doc/`：说明文档。
+  - [doc/doc.md](doc/doc.md)：实验需求、运行方式、输入输出。
+  - [doc/modules.md](doc/modules.md)：脚本结构和维护入口。
 
 ---
 
 ## 使用说明
 
-1. 按照示例配置文件完成配置：
-    ```bash
-   cp configs/llm_config.json.example configs/llm_config.json
-    ```
-2. 运行测试脚本：
+1. 安装运行依赖。
+
    ```bash
-   python test.py <CVE-ID>
+   npm install
    ```
-   例如：
+
+   还需要确保 Docker、CMake、`wllvm`/`wllvm++`、VAST 工具链和 `loc-mcp-server` 可用。
+
+2. 复制并填写配置文件。
+
    ```bash
-   python test.py 2026-28688
+   cp configs/env.json.example configs/env.json
+   cp configs/opencode_baseline.json.example configs/opencode_baseline.json
+   cp configs/opencode_vastdb.json.example configs/opencode_vastdb.json
+   cp configs/opencode_judge.json.example configs/opencode_judge.json
    ```
-3. 在 `outputs/` 目录中查看生成结果
+
+   至少需要填写 provider `apiKey`，并把 `configs/env.json` 中的 VAST 路径改成本机路径。
+
+3. 运行测试用例。
+
+   ```bash
+   python3 run_eval.py 1025 2
+   python3 run_eval.py 1025 1..5
+   python3 run_eval.py all --jobs 4
+   ```
+
+4. 查看结果。
+
+   单个测试用例结果写入：
+
+   ```text
+   outputs/CWD-<CWD-ID>/CWD-<CWD-ID>-<ID2>/results/
+   ```
+
+   全局进度和汇总写入：
+
+   ```text
+   outputs/progress.log
+   outputs/summary.json
+   ```

@@ -1,1 +1,0 @@
-The vulnerability occurs because `primitive_info` is updated via the `CheckPrimitiveExtent` function call, which may reallocate and free the original buffer stored in `mvg_info`, yet the subsequent use `end=primitive_info[number_coordinates-1].point;` reads from the stale pointer that was computed before the reallocation check.

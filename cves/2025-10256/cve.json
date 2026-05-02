@@ -1,8 +1,0 @@
-{
-  "CVE-ID": "CVE-2025-10256",
-  "CWE-ID": "CWE-476 NULL Pointer Dereference",
-  "project": "ffmpeg",
-  "version": "",
-  "patch": "a254624",
-  "location": "ya = s->dump_buf[i];"
-}

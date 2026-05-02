@@ -1,1 +1,0 @@
-The vulnerability occurs because `fr_pair_afrom_num` can return NULL, but there is no check before dereferencing `newvp` at `newvp->vp_length = eapsim_len-2;` in the loop. This null pointer assignment leads directly to a crash when dereferencing `newvp`.

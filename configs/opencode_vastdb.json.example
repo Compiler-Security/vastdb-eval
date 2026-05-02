@@ -1,0 +1,60 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "share": "disabled",
+  "snapshot": false,
+  "model": "alibaba-cn/deepseek-v3",
+  "permission": {
+    "read": "allow",
+    "edit": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "bash": "deny",
+    "task": "deny",
+    "external_directory": "deny",
+    "todowrite": "deny",
+    "question": "deny",
+    "webfetch": "deny",
+    "websearch": "deny",
+    "lsp": "deny",
+    "doom_loop": "deny",
+    "skill": "allow"
+  },
+  "lsp": false,
+  "mcp": {
+    "loc-mcp-server": {
+      "type": "local",
+      "command": [
+        "loc-mcp-server"
+      ],
+      "enabled": true,
+      "environment": {
+        "NEO4J_USER": "neo4j",
+        "NEO4J_PASSWORD": "<YOUR_NEO4J_PASSWORD>",
+        "NEO4J_DATABASE": "neo4j"
+      }
+    }
+  },
+  "provider": {
+    "alibaba-cn": {
+      "options": {
+        "apiKey": "<YOUR_API_KEY>",
+        "baseURL": "https://dashscope.aliyuncs.com/compatible-mode/v1"
+      },
+      "models": {
+        "qwen2.5-coder-7b-instruct": {
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          }
+        },
+        "deepseek-v3": {
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          }
+        }
+      }
+    }
+  }
+}

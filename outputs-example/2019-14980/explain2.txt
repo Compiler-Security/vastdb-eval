@@ -1,1 +1,0 @@
-The vulnerability occurs when `blob_info->mapped` is true, causing `DetachBlob` to free the memory via `UnmapBlob` and return a dangling pointer; a use-after-free then results when `ImagesToBlob` passes this already-freed pointer to `RelinquishMagickMemory` on the error path where `status == MagickFalse`.

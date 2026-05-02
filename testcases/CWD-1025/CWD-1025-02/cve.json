@@ -5,6 +5,6 @@
     "version": "b29f4ab",
     "patch": "8a0bbe7",
     "file": "window.c",
-    "source": "vim_free(wp->w_tagstack[i].tagname);",
+    "source": "VIM_CLEAR(item->tagname);",
     "sink": "vim_free(wp->w_tagstack[i].tagname);"
 }

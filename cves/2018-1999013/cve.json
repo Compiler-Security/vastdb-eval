@@ -1,8 +1,0 @@
-{
-    "CVE-ID": "CVE-2018-1999013",
-    "CWE-ID": "CWE-416 Use After Free",
-    "project": "ffmpeg",
-    "version": "",
-    "patch": "a7e032a",
-    "location": "strcmp(mime, \"logical-fileinfo\")"
-}

@@ -1,10 +1,14 @@
 .vscode/*
+.agents/*
+.codex
 
 configs/*
 !configs/*.example
+!configs/*.json.example
 logs/*
 outputs/*
 cves/*
 **/build
 **/*.o
 outputs-example/[!0-9]*
+node_modules/*

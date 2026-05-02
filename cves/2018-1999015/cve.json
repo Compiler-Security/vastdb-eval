@@ -1,8 +1,0 @@
-{
-    "CVE-ID": "CVE-2018-1999015",
-    "CWE-ID": "CWE-125 Out-of-bounds Read",
-    "project": "ffmpeg",
-    "version": "",
-    "patch": "5aba5b8",
-    "location": "UPDATE_CACHE(re, s);"
-}

@@ -1,8 +1,0 @@
-{
-  "CVE-ID": "CVE-2025-69693",
-  "CWE-ID": "CWE-125 Out-of-bounds Read",
-  "project": "ffmpeg",
-  "version": "",
-  "patch": "8abeb87",
-  "location": "rv60_qp_to_idx[qp + 32];"
-}

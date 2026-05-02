@@ -1,8 +1,0 @@
-{
-    "CVE-ID": "CVE-2018-13302",
-    "CWE-ID": "CWE-129 Improper Validation of Array Index",
-    "project": "ffmpeg",
-    "version": "",
-    "patch": "ed22dc2",
-    "location": "info->substream[hdr->substreamid].fscod = hdr->sr_code;"
-}

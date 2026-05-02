@@ -1,0 +1,64 @@
+{
+  "type": "json_schema",
+  "retryCount": 2,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "baseline": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "correct": {
+            "type": "boolean",
+            "description": "Whether the baseline explanation accurately identifies the vulnerability root cause and trigger path."
+          },
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10,
+            "description": "Quality score from 0 to 10."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Concise justification for the baseline judgement."
+          }
+        },
+        "required": [
+          "correct",
+          "score",
+          "reason"
+        ]
+      },
+      "vastdb": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "correct": {
+            "type": "boolean",
+            "description": "Whether the vastdb explanation accurately identifies the vulnerability root cause and trigger path."
+          },
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10,
+            "description": "Quality score from 0 to 10."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Concise justification for the vastdb judgement."
+          }
+        },
+        "required": [
+          "correct",
+          "score",
+          "reason"
+        ]
+      }
+    },
+    "required": [
+      "baseline",
+      "vastdb"
+    ]
+  }
+}

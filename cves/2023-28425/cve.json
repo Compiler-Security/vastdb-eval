@@ -1,8 +1,0 @@
-{
-  "CVE-ID": "CVE-2023-28425",
-  "CWE-ID": "CWE-617 Reachable Assertion",
-  "project": "redis",
-  "version": "",
-  "patch": "48e0d47",
-  "location": "serverAssertWithInfo(NULL, key, de != NULL);"
-}
