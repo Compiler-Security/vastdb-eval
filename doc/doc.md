@@ -7,7 +7,7 @@
 每个测试用例包含一个漏洞版本 `bad/`、一个修复版本 `good/` 和漏洞元信息 `cve.json`。实验要求在同一份 `bad/` 代码上运行两类分析 agent：
 
 - baseline agent：禁用 LSP，只使用常规代码阅读和搜索能力，不配置 VAST DB 相关 MCP，用于模拟没有图数据库辅助的漏洞根因分析。
-- vastdb agent：禁用 LSP；在常规代码阅读和搜索之外，启用 `loc-mcp-server`，并可结合项目 `skills/` 中的 VAST DB schema 说明生成 Cypher 查询，利用 VAST DB 获取调用链或数据流证据。
+- vastdb agent：禁用 LSP；先做常规代码阅读和文本搜索，在候选项过多或需要精确 caller/callee、函数定义、调用点、数据流信息时，启用 `loc-mcp-server`，并结合 `.opencode/skills/` 中的 `understand-mlir-schema` 和 `write-cypher` 生成 Cypher 查询，利用 VAST DB 获取辅助证据。
 
 两个分析 agent 必须输出同样结构的文本结果：
 
@@ -24,7 +24,7 @@ judge agent 读取 baseline/vastdb 两份输出、`bad/`、`good/` 和 `cve.json
 2. 启动或复用该用例对应的 Neo4j Docker 容器。
 3. 如果容器是本次新建的，构建 `bad/` 并写入 VAST DB。
 4. 运行 baseline agent：在 `$work/bad` 中分析漏洞，禁用 LSP，不使用 VAST DB/MCP。
-5. 运行 vastdb agent：在 `$work/bad` 中分析漏洞，禁用 LSP，可使用 `loc-mcp-server` 和 VAST DB skill 辅助定位调用链/数据流。
+5. 运行 vastdb agent：在 `$work/bad` 中分析漏洞，禁用 LSP；先用文本搜索建立候选 trigger path，必要时再使用 `loc-mcp-server` 和 VAST DB skills 精确查询调用链/数据流。
 6. 运行 judge agent：在 `$work` 中读取 `bad/`、`good/`、`cve.json` 和两份 agent 输出，生成 JSON 评分。
 7. 根据结果清理容器。
 
@@ -247,9 +247,9 @@ baseline 是无 VAST DB 辅助的对照组。它只根据代码和 prompt 中给
 - 启用 `loc-mcp-server`
 - 当前配置禁用 LSP
 
-vastdb 是实验组。它与 baseline 分析同一份 `bad/` 代码，但可以额外使用 VAST DB 相关能力：通过 skill 理解图数据库 schema、生成 Cypher 查询，并通过 `loc-mcp-server` 获取调用链或数据流信息。
+vastdb 是实验组。它与 baseline 分析同一份 `bad/` 代码，但可以额外使用 VAST DB 相关能力。推荐路径是先通过普通文本搜索缩小候选范围；当需要数据库辅助时，先用 `understand-mlir-schema` 理解图数据库 schema，再用 `write-cypher` 编写和执行只读 Cypher 查询，通过 `loc-mcp-server` 获取函数定义、caller/callee、调用点或数据流信息。
 
-skills 由 opencode 根据工作目录向上发现；因此从 `$work/bad` 启动时可以发现项目根目录下的 `skills/`。
+skills 由 opencode 根据工作目录向上发现；因此从 `$work/bad` 启动时可以发现项目根目录下的 `.opencode/skills/`。
 
 ### judge
 

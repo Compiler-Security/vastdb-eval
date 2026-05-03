@@ -377,10 +377,9 @@ def wait_for_neo4j_ready(case: TestCase, timeout_seconds: int = 90) -> dict[str,
     deadline = time.monotonic() + timeout_seconds
     attempts = 0
     cmd = [
-        "cypher-shell",
-        "-a",
-        f"bolt://localhost:{case.bolt_port}",
-        "RETURN 1",
+        "docker",
+        "logs",
+        f"{case.container}",
     ]
     last_result: dict[str, Any] | None = None
     while time.monotonic() < deadline:
@@ -391,7 +390,7 @@ def wait_for_neo4j_ready(case: TestCase, timeout_seconds: int = 90) -> dict[str,
             "stdout": proc.stdout,
             "stderr": proc.stderr,
         }
-        if proc.returncode == 0:
+        if "Bolt enabled " in proc.stdout and proc.returncode == 0:
             return {
                 "container": case.container,
                 "bolt_port": case.bolt_port,
@@ -401,7 +400,7 @@ def wait_for_neo4j_ready(case: TestCase, timeout_seconds: int = 90) -> dict[str,
                 "elapsed_seconds": round(time.monotonic() - started, 3),
                 **last_result,
             }
-        time.sleep(1)
+        time.sleep(5)
     raise EvalError(
         "docker",
         f"Neo4j readiness check failed for {case.container} after {timeout_seconds}s: {last_result}",

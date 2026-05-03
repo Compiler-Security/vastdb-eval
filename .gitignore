@@ -13,3 +13,4 @@ cves/*
 **/*.o
 outputs-example/[!0-9]*
 node_modules/*
+__pycache__/*

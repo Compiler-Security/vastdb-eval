@@ -5,7 +5,7 @@
 实验会对同一份 `bad/` 代码运行两类 agent：
 
 1. baseline agent：禁用 LSP，不使用 VAST DB/MCP。
-2. vastdb agent：禁用 LSP，可使用 `loc-mcp-server` 和 VAST DB skill 获取调用链或数据流证据。
+2. vastdb agent：禁用 LSP；先用普通文本搜索定位候选代码，候选过多或需要精确调用关系时，再结合 `loc-mcp-server`、`understand-mlir-schema` 和 `write-cypher` 查询 VAST DB。
 
 最后由 judge agent 对两份分析结果进行结构化评分。实验需求和输出含义见 [doc/doc.md](doc/doc.md)。
 
@@ -23,7 +23,7 @@
   - `*.json.example`：可提交的示例配置。
   - `*.json`：本机真实配置，包含密钥或本机路径，默认被 `.gitignore` 忽略。
 - `prompts/`：baseline、vastdb、judge 的 prompt 和 judge schema。
-- `.opencode/skills/`：VAST DB schema skill。
+- `.opencode/skills/`：VAST DB 辅助 skill，包括 `understand-mlir-schema` 和 `write-cypher`。
 - `doc/`：说明文档。
   - [doc/doc.md](doc/doc.md)：实验需求、运行方式、输入输出。
   - [doc/modules.md](doc/modules.md)：脚本结构和维护入口。

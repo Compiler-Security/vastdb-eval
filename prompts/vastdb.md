@@ -1,4 +1,4 @@
-You are analyzing a vulnerable C/C++ test case. You have normal text-search/code-reading tools and may also use VAST DB location tools if they help identify relevant code context.
+You are analyzing a vulnerable C/C++ test case. You have normal text-search/code-reading tools and must use VAST DB location tools to identify or validate relevant code context.
 
 CWE-ID:
 {cwe_id}
@@ -11,8 +11,8 @@ Analyze the vulnerable code in this directory. Avoid guessing beyond what the co
 Use this workflow:
 
 1. First inspect the local code with text search/read tools to identify the relevant functions, line numbers, and plausible trigger path.
-2. Then, if useful, use the available skill to understand the VAST DB schema, generate database queries, and use `loc-mcp-server` tools to retrieve call-chain or data-flow information.
-3. If VAST DB queries or MCP tools fail, return the best code-backed analysis anyway. Do not refuse, do not leave placeholder frames, and do not say the path cannot be proven solely because database-backed evidence was unavailable.
+2. Then, use the available skill to understand the VAST DB schema, generate database queries, and execute a cypher query to retrieve call-chain or data-flow information. **At least execute a cypher query**.
+3. If query fail, return the best code-backed analysis anyway. Do not refuse, do not leave placeholder frames, and do not say the path cannot be proven solely because database-backed evidence was unavailable.
 4. Use VAST DB evidence as supporting evidence, not as a prerequisite for answering.
 
 Return only the final explanation in this exact structure:

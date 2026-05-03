@@ -221,7 +221,7 @@ ORDER BY e.idx
 ```cypher
 // Walk from an op to its region and blocks in order
 MATCH (o:OPERATIONS {uid: $op_uid})-[re:CHILDREGION]->(r:REGIONS)-[be:CHILDBLOCK]->(b:BLOCKS)
-RETURN r.uid, b.uid, e.idx
+RETURN r.uid, b.uid, re.idx, be.idx
 ORDER BY re.idx, be.idx
 ```
 
