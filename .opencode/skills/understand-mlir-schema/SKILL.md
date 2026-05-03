@@ -1,13 +1,13 @@
 ---
 name: understand-mlir-schema
-description: Use when you need to understand how the VAST MLIR graph database is organized — what node labels exist (OPERATIONS, VALUES, TYPES, etc.), how they connect via relationships (RESVALUE, ARGVALUE, CHILDREGION, etc.), and what properties each node carries. Use this before writing any Cypher queries against the database.
+description: Use to understand the VAST DB schema: what node labels exist (OPERATIONS, VALUES, TYPES, etc.), how nodes connect through relationships (RESVALUE, ARGVALUE, CHILDREGION, etc.), and what properties each node kind carries. Use this before writing Cypher queries against VAST DB. For query patterns, load write-cypher.
 ---
 
 # Understand MLIR Schema
 
 ## Overview
 
-This skill teaches the structure of the VAST MLIR Neo4j graph. Use it to learn node labels, relationship types, and properties before querying the database. Do not guess labels or relationships — look them up here.
+This skill describes the VAST DB schema. Use it to check node labels, relationship types, and properties before writing or interpreting Cypher queries. Do not guess labels or relationships; look them up here.
 
 ## Core Schema
 

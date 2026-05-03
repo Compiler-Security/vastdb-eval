@@ -1,34 +1,94 @@
 # VAST DB Cypher Query Templates
 
-Use these templates before inventing new Cypher. Keep queries read-only unless the user explicitly asks to modify the database.
+Use these templates before inventing new Cypher
 
-## Function By Name
+# Code structure
 
-Use when the user gives a C/C++ function name and needs the corresponding `hl.func` or `ll.func`.
+## Location to Operations
 
-```cypher
-MATCH (f:OPERATIONS)
-WHERE f.name IN ['hl.func', 'll.func']
-  AND (f.func_name = $func_name OR f.fs_raw_name = $func_name)
-RETURN f.uid AS uid, f.name AS op, f.func_name AS func_name, f.fs_raw_name AS raw_name,
-       f.fs_class_name AS class_name, f.location AS location
-ORDER BY uid
-LIMIT 20
-```
+Given a source file name and line number, return operations mapped to that source location.
 
-## Operations By Source Location
-
-Use when the user gives a file and line number. `location` is normally `['F', file, line, column]`.
+- Normal location format: `['F', file, line, column]`.
+- Macro-expanded location format: `['M', 2, 'F', file_expand, line_expand, column_expand, 'F', file_macro, line_macro, column_macro]`.
 
 ```cypher
 MATCH (op:OPERATIONS)
-WHERE op.location[1] ENDS WITH $file_name
-  AND toInteger(op.location[2]) = $line
-RETURN op.uid AS uid, op.name AS name, op.func_name AS func_name, op.fs_raw_name AS raw_name,
-       op.location AS location
-ORDER BY uid
+WHERE (op.location[0] = 'F' AND op.location[1] ENDS WITH $file_name AND toInteger(op.location[2]) = $line) 
+OR (op.location[0] = 'M' AND op.location[3] ENDS WITH $file_name AND toInteger(op.location[4]) = $line) 
+RETURN op.uid, op.name, op.location
+ORDER BY op.uid
 LIMIT 50
 ```
+
+## Macro Location to Operations
+
+Given a file name and line number of a macro, return its related operations
+
+```cypher
+MATCH (op:OPERATIONS)
+WHERE op.location[0] = 'M' AND op.location[7] ENDS WITH $file_name AND toInteger(op.location[8]) = $line
+RETURN op.uid, op.name, op.location
+ORDER BY op.uid
+LIMIT 50
+```
+
+## Enclosing Function
+
+Given an operation uid, return its enclosing function
+
+```cypher
+MATCH (:OPERATIONS {uid: $op_uid}) 
+(()<-[:CHILDINST]-()<-[:CHILDBLOCK]-()<-[:CHILDREGION]-()){1,} (func {name: "hl.func"})
+RETURN func.uid, func.func_name, func.fs_raw_name, func.location;
+```
+
+## Name to Function
+
+Given a function name, return matching `hl.func` operations that are function definitions.
+
+- Use `func_name` when the name comes from VAST DB query results. It is the demangled function name with qualifiers and prototype, such as `NS::C::foo(int *)`.
+- Use `fs_raw_name` when the name comes from source code. It is the source-level function name, such as `foo`.
+- The `CHILDREGION -> CHILDBLOCK` check filters out declarations and keeps function definitions.
+
+```cypher
+MATCH (func:OPERATIONS {name: "hl.func", func_name: $func_name})
+WHERE (func)-[:CHILDREGION]->()-[:CHILDBLOCK]->()
+RETURN func.uid, func.func_name, func.location;
+```
+
+```cypher
+MATCH (func:OPERATIONS {name: "hl.func", fs_raw_name: $func_raw_name})
+WHERE (func)-[:CHILDREGION]->()-[:CHILDBLOCK]->()
+RETURN func.uid, func.func_name, func.location;
+```
+
+## Name to Global Variable
+
+
+## Name to Struct/Union/Class
+
+
+## Name to Typedef
+
+
+# Call Chain
+
+## Direct Caller
+
+Given a callee uid, return its callers and call operations
+
+```cypher
+MATCH (callee:OPERATIONS {uid: $callee_uid, name: "hl.func"})
+MATCH (:STRINGATTRS {hash: callee.hash})<-[:ARGATTR]-(call:OPERATIONS {name: "hl.call"})
+(()<-[:CHILDINST]-()<-[:CHILDBLOCK]-()<-[:CHILDREGION]-()){1,} (caller:OPERATIONS {name: "hl.func"})
+ORDER BY caller.uid
+RETURN caller.uid, caller.func_name, caller.fs_raw_name, caller.location, call.uid, call.location;
+```
+
+# Data Flow
+
+
+# Other
 
 ## Operations Near Source Location
 
@@ -72,33 +132,6 @@ ORDER BY uid
 LIMIT 300
 ```
 
-## Enclosing Functions For Operation
-
-Use when an operation uid is known and you need the containing function.
-
-```cypher
-MATCH (f:OPERATIONS)-[:CHILDREGION|CHILDBLOCK|CHILDINST*]->(op:OPERATIONS {uid: $op_uid})
-WHERE f.name IN ['hl.func', 'll.func']
-RETURN DISTINCT f.uid AS func_uid, f.name AS func_op, f.func_name AS func_name,
-       f.fs_raw_name AS raw_name, f.location AS func_location
-ORDER BY func_uid
-LIMIT 20
-```
-
-## Direct Calls By Callee
-
-Use for direct `hl.call` sites. The callee may be stored as `call.callee` or as `ARGATTR {idx:0}` depending on database version.
-
-```cypher
-MATCH (call:OPERATIONS {name: 'hl.call'})
-OPTIONAL MATCH (call)-[:ARGATTR {idx: 0}]->(callee_attr:STRINGATTRS)
-WHERE call.callee = $callee OR callee_attr.value = $callee
-RETURN call.uid AS uid, call.name AS name, coalesce(call.callee, callee_attr.value) AS callee,
-       call.location AS location
-ORDER BY uid
-LIMIT 100
-```
-
 ## Direct Callees In Function
 
 Use to list direct callees inside a function.
@@ -110,21 +143,6 @@ OPTIONAL MATCH (call)-[:ARGATTR {idx: 0}]->(callee_attr:STRINGATTRS)
 RETURN DISTINCT call.uid AS call_uid, coalesce(call.callee, callee_attr.value) AS callee,
        call.location AS location
 ORDER BY callee, call_uid
-LIMIT 100
-```
-
-## Direct Callers Of Function Name
-
-Use to find functions containing calls to a callee name.
-
-```cypher
-MATCH (caller:OPERATIONS)-[:CHILDREGION|CHILDBLOCK|CHILDINST*]->(call:OPERATIONS {name: 'hl.call'})
-OPTIONAL MATCH (call)-[:ARGATTR {idx: 0}]->(callee_attr:STRINGATTRS)
-WHERE caller.name IN ['hl.func', 'll.func']
-  AND (call.callee = $callee OR callee_attr.value = $callee)
-RETURN DISTINCT caller.uid AS caller_uid, caller.func_name AS caller_name,
-       caller.fs_raw_name AS caller_raw_name, call.uid AS call_uid, call.location AS call_location
-ORDER BY caller_name, call_uid
 LIMIT 100
 ```
 
@@ -166,17 +184,5 @@ RETURN del.uid AS delete_uid, del.name AS delete_op, del.location AS delete_loca
        ptr.uid AS ptr_value_uid, def.uid AS ptr_def_uid, def.name AS ptr_def_name,
        def.location AS ptr_def_location
 ORDER BY delete_uid
-LIMIT 100
-```
-
-## Load Store Operations
-
-Use for low-level memory reads/writes.
-
-```cypher
-MATCH (op:OPERATIONS)
-WHERE op.name IN ['ll.load', 'll.store']
-RETURN op.uid AS uid, op.name AS name, op.location AS location
-ORDER BY uid
 LIMIT 100
 ```
