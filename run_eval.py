@@ -201,6 +201,20 @@ def discover_all_cases() -> list[TestCase]:
     return cases
 
 
+def discover_cases_by_cwd(cwd_id: int) -> list[TestCase]:
+    cases: list[TestCase] = []
+    pattern = re.compile(rf"^CWD-{cwd_id}-(\d+)$")
+    cwd_dir = TESTCASES_DIR / f"CWD-{cwd_id}"
+    for path in sorted(cwd_dir.glob(f"CWD-{cwd_id}-*")):
+        if not path.is_dir():
+            continue
+        match = pattern.match(path.name)
+        if not match:
+            continue
+        cases.append(TestCase(cwd_id, int(match.group(1))))
+    return cases
+
+
 def parse_case_name(name: str) -> TestCase:
     match = re.fullmatch(r"CWD-(\d+)-(\d+)", name)
     if not match:
@@ -296,10 +310,11 @@ def select_cases(args: argparse.Namespace) -> list[TestCase]:
 
     if not re.fullmatch(r"\d+", args.selector):
         raise EvalError("input", f"invalid CWD-ID: {args.selector}")
-    if args.case is None:
-        raise EvalError("input", "missing case id or range")
 
     cwd_id = int(args.selector, 10)
+    if args.case is None:
+        return discover_cases_by_cwd(cwd_id)
+
     if ".." in args.case:
         start_text, end_text = args.case.split("..", 1)
         start = parse_case_id(start_text)

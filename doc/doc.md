@@ -48,11 +48,14 @@ python run_eval.py all --jobs 4
 ```bash
 python run_eval.py 1025 2
 python run_eval.py 1025 1..5
+python run_eval.py 1025
 python run_eval.py fail
 python run_eval.py negative
 ```
 
 `<ID>` 可以写成 `2` 或 `02`。脚本内部会把它格式化为两位目录名，例如 `CWD-1025-02`。
+
+只传 `<CWD-ID>` 时会执行该类别目录下实际存在的所有测试用例，例如 `python run_eval.py 1025` 会扫描 `testcases/CWD-1025/`。
 
 `fail` 会读取 `outputs/summary.json`，选择其中 `results[].ok=false` 的所有测试用例重新执行。
 

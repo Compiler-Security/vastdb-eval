@@ -56,6 +56,7 @@
    ```bash
    python3 run_eval.py 1025 2
    python3 run_eval.py 1025 1..5
+   python3 run_eval.py 1025
    python3 run_eval.py fail
    python3 run_eval.py negative
    python3 run_eval.py all --jobs 4
