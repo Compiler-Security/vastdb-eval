@@ -37,6 +37,7 @@ judge agent 读取 baseline/vastdb 两份输出、`bad/`、`good/` 和 `cve.json
 ```bash
 python run_eval.py <CWD-ID> <ID>
 python run_eval.py <CWD-ID> <START-ID>..<END-ID>
+python run_eval.py <CWD-ID> [<CWD-ID> ...]
 python run_eval.py all
 python run_eval.py fail
 python run_eval.py negative
@@ -49,6 +50,8 @@ python run_eval.py all --jobs 4
 python run_eval.py 1025 2
 python run_eval.py 1025 1..5
 python run_eval.py 1025
+python run_eval.py 1028 1029 1030
+python run_eval.py 1028 1..3 6 1029 1030 2..10
 python run_eval.py fail
 python run_eval.py negative
 ```
@@ -56,6 +59,8 @@ python run_eval.py negative
 `<ID>` 可以写成 `2` 或 `02`。脚本内部会把它格式化为两位目录名，例如 `CWD-1025-02`。
 
 只传 `<CWD-ID>` 时会执行该类别目录下实际存在的所有测试用例，例如 `python run_eval.py 1025` 会扫描 `testcases/CWD-1025/`。
+
+可以一次传入多个执行目标，例如 `python run_eval.py 1028 1029 1030` 会分别扫描并执行这三个 CWD 目录。解析按从左到右的状态机进行：遇到 CWD-ID 后，后续 ID/range 都归到该 CWD，直到遇到下一个已存在的 CWD-ID 或 `all`/`fail`/`negative`。例如 `python run_eval.py 1028 1..3 6 1029 1030 2..10` 表示执行 `CWD-1028` 的 1..3 和 6、`CWD-1029` 的全部用例、以及 `CWD-1030` 的 2..10。
 
 `fail` 会读取 `outputs/summary.json`，选择其中 `results[].ok=false` 的所有测试用例重新执行。
 

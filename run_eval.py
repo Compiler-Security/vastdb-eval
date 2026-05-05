@@ -176,8 +176,11 @@ def stringify_env(values: dict[str, Any]) -> dict[str, str]:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run VAST DB evaluation test cases.")
-    parser.add_argument("selector", help="'all', 'fail', 'negative', or CWD-ID, e.g. 1031")
-    parser.add_argument("case", nargs="?", help="ID or range, e.g. 1 or 1..10")
+    parser.add_argument(
+        "targets",
+        nargs="+",
+        help="'all', 'fail', 'negative', CWD-ID, or CWD-ID plus ID/range",
+    )
     parser.add_argument("--jobs", type=int, default=1, help="number of test cases to run concurrently")
     return parser.parse_args()
 
@@ -213,6 +216,10 @@ def discover_cases_by_cwd(cwd_id: int) -> list[TestCase]:
             continue
         cases.append(TestCase(cwd_id, int(match.group(1))))
     return cases
+
+
+def is_existing_cwd_target(value: str) -> bool:
+    return bool(re.fullmatch(r"\d+", value)) and (TESTCASES_DIR / f"CWD-{int(value, 10)}").is_dir()
 
 
 def parse_case_name(name: str) -> TestCase:
@@ -295,35 +302,78 @@ def is_negative_result(result: dict[str, Any]) -> bool:
 
 
 def select_cases(args: argparse.Namespace) -> list[TestCase]:
-    if args.selector == "all":
-        if args.case is not None:
-            raise EvalError("input", "'all' does not accept a case id argument")
-        return discover_all_cases()
-    if args.selector == "fail":
-        if args.case is not None:
-            raise EvalError("input", "'fail' does not accept a case id argument")
-        return discover_failed_cases_from_summary()
-    if args.selector == "negative":
-        if args.case is not None:
-            raise EvalError("input", "'negative' does not accept a case id argument")
-        return discover_negative_cases_from_summary()
+    cases: list[TestCase] = []
+    tokens = args.targets
+    index = 0
+    current_cwd_id: int | None = None
+    while index < len(tokens):
+        token = tokens[index]
+        if token == "all":
+            cases.extend(discover_all_cases())
+            current_cwd_id = None
+            index += 1
+            continue
+        if token == "fail":
+            cases.extend(discover_failed_cases_from_summary())
+            current_cwd_id = None
+            index += 1
+            continue
+        if token == "negative":
+            cases.extend(discover_negative_cases_from_summary())
+            current_cwd_id = None
+            index += 1
+            continue
 
-    if not re.fullmatch(r"\d+", args.selector):
-        raise EvalError("input", f"invalid CWD-ID: {args.selector}")
+        if is_existing_cwd_target(token):
+            cwd_id = int(token, 10)
+            next_token = tokens[index + 1] if index + 1 < len(tokens) else None
+            if next_token is None or is_group_boundary_token(next_token):
+                cases.extend(discover_cases_by_cwd(cwd_id))
+                current_cwd_id = None
+            else:
+                current_cwd_id = cwd_id
+            index += 1
+            continue
 
-    cwd_id = int(args.selector, 10)
-    if args.case is None:
-        return discover_cases_by_cwd(cwd_id)
+        if is_case_selector_token(token):
+            if current_cwd_id is None:
+                if re.fullmatch(r"\d+", token):
+                    raise EvalError("input", f"unknown CWD-ID: {token}")
+                raise EvalError("input", f"case selector without CWD-ID: {token}")
+            cases.extend(select_cases_by_cwd_and_case(current_cwd_id, token))
+            index += 1
+            continue
 
-    if ".." in args.case:
-        start_text, end_text = args.case.split("..", 1)
+        raise EvalError("input", f"invalid target: {token}")
+
+    return unique_sorted_cases(cases)
+
+
+def is_case_selector_token(value: str) -> bool:
+    if ".." in value:
+        start_text, end_text = value.split("..", 1)
+        return bool(re.fullmatch(r"\d+", start_text) and re.fullmatch(r"\d+", end_text))
+    return bool(re.fullmatch(r"\d+", value))
+
+
+def is_group_boundary_token(value: str) -> bool:
+    return value in {"all", "fail", "negative"} or is_existing_cwd_target(value)
+
+
+def select_cases_by_cwd_and_case(cwd_id: int, case_token: str) -> list[TestCase]:
+    if ".." in case_token:
+        start_text, end_text = case_token.split("..", 1)
         start = parse_case_id(start_text)
         end = parse_case_id(end_text)
         if end < start:
-            raise EvalError("input", f"invalid range: {args.case}")
+            raise EvalError("input", f"invalid range: {case_token}")
         return [TestCase(cwd_id, case_id) for case_id in range(start, end + 1)]
 
-    return [TestCase(cwd_id, parse_case_id(args.case))]
+    return [TestCase(cwd_id, parse_case_id(case_token))]
+
+
+def unique_sorted_cases(cases: list[TestCase]) -> list[TestCase]:
+    return sorted(set(cases), key=lambda case: (case.cwd_id, case.case_id))
 
 
 def check_runtime_dependencies() -> None:

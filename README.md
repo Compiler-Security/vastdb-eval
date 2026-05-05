@@ -57,6 +57,8 @@
    python3 run_eval.py 1025 2
    python3 run_eval.py 1025 1..5
    python3 run_eval.py 1025
+   python3 run_eval.py 1028 1029 1030
+   python3 run_eval.py 1028 1..3 6 1029 1030 2..10
    python3 run_eval.py fail
    python3 run_eval.py negative
    python3 run_eval.py all --jobs 4
