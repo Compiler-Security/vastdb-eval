@@ -795,6 +795,7 @@ def run_agent(
         final_output = json.dumps(structured_output, indent=2, ensure_ascii=False) + "\n"
     else:
         final_output = assistant_text or ""
+    sdk_error = runner_error_message(runner_result) if runner_result else None
 
     output_path = result_dir / output_name
     output_path.write_text(final_output, encoding="utf-8")
@@ -843,12 +844,39 @@ def run_agent(
         log["error"] = f"opencode failed with exit code {proc.returncode}"
         write_json(result_dir / "log.json", log)
         raise EvalError(stage, log["error"])
+    if sdk_error:
+        log["error"] = sdk_error
+        write_json(result_dir / "log.json", log)
+        raise EvalError(stage, log["error"])
     if not final_output.strip():
         log["error"] = f"{stage} did not produce {output_name}"
         write_json(result_dir / "log.json", log)
         raise EvalError(stage, log["error"])
 
     write_json(result_dir / "log.json", log)
+
+
+def runner_error_message(runner_result: dict[str, Any] | None) -> str | None:
+    if not runner_result:
+        return None
+    if runner_result.get("ok") is False:
+        error = runner_result.get("error")
+        if error:
+            return f"opencode runner failed: {compact_json(error)}"
+        return "opencode runner failed"
+    response = runner_result.get("response")
+    if isinstance(response, dict) and "error" in response:
+        return f"opencode session.prompt returned error: {compact_json(response.get('error'))}"
+    return None
+
+
+def compact_json(value: Any) -> str:
+    if isinstance(value, str):
+        return value
+    try:
+        return json.dumps(value, ensure_ascii=False, sort_keys=True)
+    except TypeError:
+        return str(value)
 
 
 def mask_command(cmd: list[str]) -> list[str]:
@@ -913,7 +941,6 @@ def build_score_statistics(
             "avg_score": None,
         },
         "vastdb_better": 0,
-        "errors": [],
     }
     baseline_score_total = 0.0
     vastdb_score_total = 0.0
@@ -925,23 +952,15 @@ def build_score_statistics(
         case_name = result.get("case")
         if not isinstance(case_name, str):
             summary["skipped"] += 1
-            summary["errors"].append({"case": case_name, "error": "missing case name"})
             continue
 
         metrics = metrics_by_case.get(case_name)
         if not metrics:
             summary["skipped"] += 1
-            summary["errors"].append({"case": case_name, "error": "missing in-memory metrics"})
             continue
         score = metrics.get("score")
         if not isinstance(score, dict):
             summary["skipped"] += 1
-            summary["errors"].append(
-                {
-                    "case": case_name,
-                    "error": str(metrics.get("score_error") or "missing judge metrics"),
-                }
-            )
             continue
 
         baseline = score["baseline"]
@@ -1114,6 +1133,44 @@ def sorted_results(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(results, key=lambda item: case_name_sort_key(item.get("case")))
 
 
+def result_statistics(metrics: dict[str, Any] | None) -> dict[str, Any]:
+    if not metrics:
+        return {
+            "score": None,
+            "score_error": "missing in-memory metrics",
+            "duration": {},
+        }
+    score = metrics.get("score")
+    durations = metrics.get("durations")
+    formatted_durations: dict[str, str] = {}
+    if isinstance(durations, dict):
+        for stage in ("baseline", "vastdb", "judge"):
+            duration = durations.get(stage)
+            if isinstance(duration, (int, float)):
+                formatted_durations[stage] = format_duration_seconds(float(duration))
+
+    statistics: dict[str, Any] = {
+        "score": score if isinstance(score, dict) else None,
+        "duration": formatted_durations,
+    }
+    if statistics["score"] is None:
+        statistics["score_error"] = str(metrics.get("score_error") or "missing judge metrics")
+    return statistics
+
+
+def results_with_statistics(
+    results: list[dict[str, Any]],
+    metrics_by_case: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    enriched: list[dict[str, Any]] = []
+    for result in sorted_results(results):
+        item = dict(result)
+        case_name = item.get("case")
+        item["statistics"] = result_statistics(metrics_by_case.get(case_name) if isinstance(case_name, str) else None)
+        enriched.append(item)
+    return enriched
+
+
 def results_by_case(results: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     indexed: dict[str, dict[str, Any]] = {}
     for result in results:
@@ -1153,7 +1210,7 @@ def build_summary_document(
         "ok": sum(1 for item in ordered_results if item.get("ok") is True),
         "failed": sum(1 for item in ordered_results if item.get("ok") is not True),
         "statistics": build_statistics(ordered_results, metrics_by_case),
-        "results": ordered_results,
+        "results": results_with_statistics(ordered_results, metrics_by_case),
     }
 
 

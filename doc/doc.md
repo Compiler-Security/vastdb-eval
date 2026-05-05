@@ -434,7 +434,7 @@ outputs/cur_summary.json
 - `failed`：当前 `results` 中 `ok=false` 的 testcase 数。运行过程中，尚未完成的 testcase 不计入 `failed`。
 - `pending`：本次运行尚未完成的 testcase 数。
 - `statistics`：根据当前 `results` 实时计算的统计信息。
-- `results`：测试用例结果列表。
+- `results`：测试用例结果列表。每条 result 除 `case`、`ok`、`stage`、`error` 外，还包含该 testcase 的 `statistics`。
 
 因此运行过程中：
 
@@ -447,6 +447,11 @@ outputs/cur_summary.json
 - `score.baseline.avg_score` / `score.vastdb.avg_score`：baseline/vastdb 各自平均分。
 - `score.vastdb_better`：vastdb 分数高于 baseline 的 testcase 数。
 - `avg_duration`：baseline/vastdb/judge 三个 agent 阶段的平均耗时。
+
+每条 result 中的 `statistics` 字段包括：
+
+- `score.baseline` / `score.vastdb`：该 testcase 的 correct 和 score；如果没有合法 judge 输出，则为 `null`，并在同一条 result 的 `statistics.score_error` 中记录原因。
+- `duration`：该 testcase 的 baseline/vastdb/judge 阶段耗时。
 
 两个文件中的 `results` 都按 `CWD-ID` 和 testcase 的第二段 ID 排序。
 

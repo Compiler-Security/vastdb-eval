@@ -270,8 +270,9 @@ async function main() {
       await eventRecorder.stop()
     }
 
+    const responseError = response?.error
     console.log(JSON.stringify({
-      ok: true,
+      ok: !responseError,
       started_at: startedAt,
       ended_at: new Date().toISOString(),
       server_url: opencode.server.url,
@@ -286,6 +287,12 @@ async function main() {
       realtime: eventRecorder.info,
       response,
       messages,
+      error: responseError
+        ? {
+            message: "opencode session.prompt returned error",
+            response: responseError,
+          }
+        : null,
     }))
   } finally {
     opencode.server.close()
