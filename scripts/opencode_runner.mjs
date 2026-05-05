@@ -2,7 +2,34 @@
 
 import { createWriteStream } from "node:fs"
 import fs from "node:fs/promises"
-import { createOpencode } from "@opencode-ai/sdk/v2"
+import { Agent } from "undici"
+import { createOpencodeClient, createOpencodeServer } from "@opencode-ai/sdk/v2"
+
+const fetchDispatcher = new Agent({
+  headersTimeout: 0,
+  bodyTimeout: 0,
+})
+
+function fetchWithoutUndiciTimeout(input, init = {}) {
+  return fetch(input, {
+    ...init,
+    dispatcher: fetchDispatcher,
+  })
+}
+
+async function createEvalOpencode(options) {
+  const server = await createOpencodeServer({
+    ...options,
+  })
+  const client = createOpencodeClient({
+    baseUrl: server.url,
+    fetch: fetchWithoutUndiciTimeout,
+  })
+  return {
+    client,
+    server,
+  }
+}
 
 async function readRequest() {
   const requestPath = process.argv[2]
@@ -219,7 +246,7 @@ async function main() {
   const configModel = typeof request.config?.model === "string" ? request.config.model : undefined
   const listingModel = parseModel(configModel)
   const directory = request.directory
-  const opencode = await createOpencode({
+  const opencode = await createEvalOpencode({
     hostname: "127.0.0.1",
     port: request.port ?? 0,
     config: request.config ?? {},
@@ -296,6 +323,7 @@ async function main() {
     }))
   } finally {
     opencode.server.close()
+    await fetchDispatcher.close()
     // Safety net: if the event loop still has lingering handles after 3s, force exit.
     const forceExit = setTimeout(() => {
       console.error("Force exiting opencode runner after server close")

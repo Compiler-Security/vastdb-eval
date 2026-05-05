@@ -3,6 +3,7 @@
   "type": "module",
   "dependencies": {
     "@opencode-ai/plugin": "1.14.31",
-    "@opencode-ai/sdk": "*"
+    "@opencode-ai/sdk": "*",
+    "undici": "^7.16.0"
   }
 }

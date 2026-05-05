@@ -176,7 +176,7 @@ def stringify_env(values: dict[str, Any]) -> dict[str, str]:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run VAST DB evaluation test cases.")
-    parser.add_argument("selector", help="'all' or CWD-ID, e.g. 1031")
+    parser.add_argument("selector", help="'all', 'fail', 'negative', or CWD-ID, e.g. 1031")
     parser.add_argument("case", nargs="?", help="ID or range, e.g. 1 or 1..10")
     parser.add_argument("--jobs", type=int, default=1, help="number of test cases to run concurrently")
     return parser.parse_args()
@@ -201,11 +201,98 @@ def discover_all_cases() -> list[TestCase]:
     return cases
 
 
+def parse_case_name(name: str) -> TestCase:
+    match = re.fullmatch(r"CWD-(\d+)-(\d+)", name)
+    if not match:
+        raise EvalError("summary", f"invalid case name: {name}")
+    return TestCase(int(match.group(1)), int(match.group(2)))
+
+
+def discover_failed_cases_from_summary() -> list[TestCase]:
+    if not SUMMARY_PATH.exists():
+        raise EvalError("input", f"cannot select failed cases because {SUMMARY_PATH} does not exist")
+    summary = read_json(SUMMARY_PATH)
+    results = summary.get("results")
+    if not isinstance(results, list):
+        raise EvalError("input", f"{SUMMARY_PATH} field 'results' must be a list")
+
+    cases: list[TestCase] = []
+    seen: set[str] = set()
+    for result in results:
+        if not isinstance(result, dict) or result.get("ok") is True:
+            continue
+        case_name = result.get("case")
+        if not isinstance(case_name, str):
+            continue
+        if case_name in seen:
+            continue
+        seen.add(case_name)
+        try:
+            cases.append(parse_case_name(case_name))
+        except EvalError as exc:
+            raise EvalError("input", exc.message) from exc
+    return sorted(cases, key=lambda case: (case.cwd_id, case.case_id))
+
+
+def discover_negative_cases_from_summary() -> list[TestCase]:
+    if not SUMMARY_PATH.exists():
+        raise EvalError("input", f"cannot select negative cases because {SUMMARY_PATH} does not exist")
+    summary = read_json(SUMMARY_PATH)
+    results = summary.get("results")
+    if not isinstance(results, list):
+        raise EvalError("input", f"{SUMMARY_PATH} field 'results' must be a list")
+
+    cases: list[TestCase] = []
+    seen: set[str] = set()
+    for result in results:
+        if not isinstance(result, dict):
+            continue
+        case_name = result.get("case")
+        if not isinstance(case_name, str) or case_name in seen:
+            continue
+        if not is_negative_result(result):
+            continue
+        seen.add(case_name)
+        try:
+            cases.append(parse_case_name(case_name))
+        except EvalError as exc:
+            raise EvalError("input", exc.message) from exc
+    return sorted(cases, key=lambda case: (case.cwd_id, case.case_id))
+
+
+def is_negative_result(result: dict[str, Any]) -> bool:
+    statistics = result.get("statistics")
+    if not isinstance(statistics, dict):
+        return False
+    score = statistics.get("score")
+    if not isinstance(score, dict):
+        return False
+    baseline = score.get("baseline")
+    vastdb = score.get("vastdb")
+    if not isinstance(baseline, dict) or not isinstance(vastdb, dict):
+        return False
+    if vastdb.get("correct") is False:
+        return True
+    baseline_score = baseline.get("score")
+    vastdb_score = vastdb.get("score")
+    if not isinstance(baseline_score, (int, float)) or not isinstance(vastdb_score, (int, float)):
+        return False
+    return float(vastdb_score) < float(baseline_score)
+
+
 def select_cases(args: argparse.Namespace) -> list[TestCase]:
     if args.selector == "all":
         if args.case is not None:
             raise EvalError("input", "'all' does not accept a case id argument")
         return discover_all_cases()
+    if args.selector == "fail":
+        if args.case is not None:
+            raise EvalError("input", "'fail' does not accept a case id argument")
+        return discover_failed_cases_from_summary()
+    if args.selector == "negative":
+        if args.case is not None:
+            raise EvalError("input", "'negative' does not accept a case id argument")
+        return discover_negative_cases_from_summary()
 
     if not re.fullmatch(r"\d+", args.selector):
         raise EvalError("input", f"invalid CWD-ID: {args.selector}")
@@ -234,9 +321,11 @@ def check_runtime_dependencies() -> None:
         missing.append("cmake")
 
     if shutil.which("node") is not None:
-        proc = run_process(["node", "-e", "import('@opencode-ai/sdk')"], ROOT)
-        if proc.returncode != 0:
-            missing.append("@opencode-ai/sdk")
+        node_packages = ["@opencode-ai/sdk", "undici"]
+        for package in node_packages:
+            proc = run_process(["node", "-e", f"import('{package}')"], ROOT)
+            if proc.returncode != 0:
+                missing.append(package)
 
     if missing:
         install = [
@@ -1000,10 +1089,8 @@ def read_judge_output(case_name: str) -> dict[str, Any]:
 
 
 def case_work_dir(case_name: str) -> Path:
-    match = re.fullmatch(r"CWD-(\d+)-(\d+)", case_name)
-    if not match:
-        raise EvalError("summary", f"invalid case name: {case_name}")
-    return OUTPUTS_DIR / f"CWD-{match.group(1)}" / case_name
+    case = parse_case_name(case_name)
+    return OUTPUTS_DIR / f"CWD-{case.cwd_id}" / case_name
 
 
 def build_case_metrics(result: dict[str, Any]) -> dict[str, Any]:

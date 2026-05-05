@@ -38,6 +38,8 @@ judge agent 读取 baseline/vastdb 两份输出、`bad/`、`good/` 和 `cve.json
 python run_eval.py <CWD-ID> <ID>
 python run_eval.py <CWD-ID> <START-ID>..<END-ID>
 python run_eval.py all
+python run_eval.py fail
+python run_eval.py negative
 python run_eval.py all --jobs 4
 ```
 
@@ -46,9 +48,15 @@ python run_eval.py all --jobs 4
 ```bash
 python run_eval.py 1025 2
 python run_eval.py 1025 1..5
+python run_eval.py fail
+python run_eval.py negative
 ```
 
 `<ID>` 可以写成 `2` 或 `02`。脚本内部会把它格式化为两位目录名，例如 `CWD-1025-02`。
+
+`fail` 会读取 `outputs/summary.json`，选择其中 `results[].ok=false` 的所有测试用例重新执行。
+
+`negative` 会读取 `outputs/summary.json`，选择已有 judge 结果中 `vastdb.correct=false`，或 `vastdb.score < baseline.score` 的测试用例重新执行。
 
 脚本路径通过 `Path(__file__).resolve().parent` 推导项目根目录，因此即使用软链接调用脚本，也会以真实脚本所在目录作为项目根。
 
@@ -65,13 +73,14 @@ npm install
 - `python3`
 - `node`
 - `@opencode-ai/sdk`
+- `undici`
 - Docker CLI 和可用 Docker daemon
 - `cmake`
 - `wllvm` / `wllvm++`
 - VAST 写库所需工具链
 - vastdb 阶段需要可用的 `loc-mcp-server`
 
-脚本启动时会显式检查 `node`、`docker`、`cmake` 和 `@opencode-ai/sdk`。其他工具在对应阶段执行时由实际命令报错。
+脚本启动时会显式检查 `node`、`docker`、`cmake`、`@opencode-ai/sdk` 和 `undici`。其他工具在对应阶段执行时由实际命令报错。
 
 ## 目录约定
 
