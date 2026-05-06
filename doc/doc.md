@@ -122,11 +122,12 @@ outputs/CWD-<CWD-ID>/CWD-<CWD-ID>-<ID2>
 vastdb-eval-<CWD-ID>-<ID2>
 ```
 
-端口公式：
+默认端口公式：
 
 ```text
-bolt = 40000 + (<CWD-ID> - 1000) * 100 + <ID>
-http = 45000 + (<CWD-ID> - 1000) * 100 + <ID>
+offset = (<CWD-ID> - 1000) * 100 + <ID>
+bolt = 40000 + offset
+http = 45000 + offset
 ```
 
 端口映射：
@@ -141,6 +142,15 @@ http = 45000 + (<CWD-ID> - 1000) * 100 + <ID>
 - 容器已运行：直接复用，并等待 Neo4j readiness check 通过。
 - 容器存在但未运行：执行 `docker start`，再等待 Neo4j readiness check 通过。
 - 容器不存在：执行 `docker run -d` 创建，再等待 Neo4j readiness check 通过。
+
+如果 `docker run` 或 `docker start` 失败信息包含 `address already in use`，脚本会按端口基数 `50000`、`10000`、`20000`、`30000` 依次回退。回退时 bolt/http 端口会同时切换：
+
+```text
+bolt = <base> + offset
+http = <base> + 5000 + offset
+```
+
+成功回退后，脚本会把该测试用例的端口记录到 `configs/.port.json`。后续运行同一用例时优先读取该文件中的端口，而不是重新从默认公式计算。若端口冲突发生在 `docker start`，脚本会删除无法启动的旧容器并用回退端口重新创建。
 
 readiness check 使用 host 上的 `cypher-shell -a bolt://localhost:<bolt_port> "RETURN 1"`。只有该查询成功后，脚本才会继续执行后续阶段。
 
@@ -387,6 +397,8 @@ $work/results/run/run.json
 - `docker_inspect`
 - `docker_start`
 - `docker_run`
+- `docker_port_conflict`
+- `docker_start_port_conflict`
 - `docker_wait_ready`
 - `write_database_configure`
 - `write_database_build`
@@ -481,6 +493,7 @@ judge 汇总只统计成功完成且能读取合法 `results/judge/output.json` 
 容器清理规则：
 
 - 写数据库阶段失败或被 Ctrl-C 打断，且容器是本次新建的：执行 `docker rm -f <container>`。
+- `docker start` 或 `docker run` 遇到端口冲突时：执行 `docker rm -f <container>` 后按回退端口重建。
 - 其他成功或失败路径：执行 `docker stop -t 2 <container>`。
 
 清理命令会尽量避免被二次 Ctrl-C 打断。
@@ -512,6 +525,8 @@ configs/env.json
 - `neo4j`：展开为 `docker run -e KEY=VALUE`。
 - `vast`：合并进写库阶段的 `cmake` 子进程环境。
 - `neo4j_image`：可选，覆盖默认 Neo4j 镜像。
+
+`configs/.port.json` 是脚本生成的端口回退记录文件，用于保存发生过回退的测试用例端口。
 
 opencode 阶段配置：
 

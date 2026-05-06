@@ -24,6 +24,7 @@ ROOT = Path(__file__).resolve().parent
 TESTCASES_DIR = ROOT / "testcases"
 OUTPUTS_DIR = ROOT / "outputs"
 CONFIG_PATH = ROOT / "configs" / "env.json"
+PORT_CONFIG_PATH = ROOT / "configs" / ".port.json"
 OPENCODE_CONFIG_PATHS = {
     "baseline": ROOT / "configs" / "opencode_baseline.json",
     "vastdb": ROOT / "configs" / "opencode_vastdb.json",
@@ -41,6 +42,9 @@ CUR_SUMMARY_PATH = OUTPUTS_DIR / "cur_summary.json"
 
 DEFAULT_NEO4J_IMAGE = "neo4j:latest"
 CONTAINER_PREFIX = "vastdb-eval"
+PORT_BASE_SEQUENCE = [40000, 50000, 10000, 20000, 30000]
+HTTP_PORT_OFFSET = 5000
+PORT_CONFIG_LOCK = threading.Lock()
 PROGRESS_LOG_LOCK = threading.Lock()
 EAST_8 = dt.timezone(dt.timedelta(hours=8))
 VAST_BITCODE_FAILURE_MARKER = "Failed to generate bitcode"
@@ -88,11 +92,11 @@ class TestCase:
 
     @property
     def bolt_port(self) -> int:
-        return 40000 + (self.cwd_id - 1000) * 100 + self.case_id
+        return case_port_assignment(self)["bolt_port"]
 
     @property
     def http_port(self) -> int:
-        return 45000 + (self.cwd_id - 1000) * 100 + self.case_id
+        return case_port_assignment(self)["http_port"]
 
 
 def now_iso() -> str:
@@ -125,6 +129,99 @@ def read_json(path: Path) -> dict[str, Any]:
 def write_json(path: Path, data: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def port_offset(case: TestCase) -> int:
+    return (case.cwd_id - 1000) * 100 + case.case_id
+
+
+def make_port_assignment(case: TestCase, base: int) -> dict[str, int] | None:
+    offset = port_offset(case)
+    bolt_port = base + offset
+    http_port = base + HTTP_PORT_OFFSET + offset
+    if not (0 < bolt_port <= 65535 and 0 < http_port <= 65535):
+        return None
+    return {"base": base, "bolt_port": bolt_port, "http_port": http_port}
+
+
+def read_port_config_unlocked() -> dict[str, Any]:
+    try:
+        with PORT_CONFIG_PATH.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return {}
+    except json.JSONDecodeError as exc:
+        raise EvalError("config", f"invalid JSON in {PORT_CONFIG_PATH}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise EvalError("config", f"{PORT_CONFIG_PATH} must contain a JSON object")
+    return data
+
+
+def normalize_port_assignment(case: TestCase, entry: Any) -> dict[str, int] | None:
+    if not isinstance(entry, dict):
+        return None
+    try:
+        base = int(entry["base"])
+    except (KeyError, TypeError, ValueError):
+        return None
+    assignment = make_port_assignment(case, base)
+    if assignment is None:
+        return None
+    try:
+        bolt_port = int(entry.get("bolt_port", assignment["bolt_port"]))
+        http_port = int(entry.get("http_port", assignment["http_port"]))
+    except (TypeError, ValueError):
+        return None
+    if bolt_port != assignment["bolt_port"] or http_port != assignment["http_port"]:
+        return None
+    return assignment
+
+
+def configured_port_assignment(case: TestCase) -> dict[str, int] | None:
+    with PORT_CONFIG_LOCK:
+        return normalize_port_assignment(case, read_port_config_unlocked().get(case.name))
+
+
+def case_port_assignment(case: TestCase) -> dict[str, int]:
+    configured = configured_port_assignment(case)
+    if configured is not None:
+        return configured
+    assignment = make_port_assignment(case, PORT_BASE_SEQUENCE[0])
+    if assignment is None:
+        raise EvalError("docker", f"no valid default port assignment for {case.name}")
+    return assignment
+
+
+def port_candidates(case: TestCase) -> list[dict[str, int]]:
+    candidates: list[dict[str, int]] = []
+    seen: set[tuple[int, int]] = set()
+
+    configured = configured_port_assignment(case)
+    if configured is not None:
+        candidates.append(configured)
+        seen.add((configured["bolt_port"], configured["http_port"]))
+
+    for base in PORT_BASE_SEQUENCE:
+        assignment = make_port_assignment(case, base)
+        if assignment is None:
+            continue
+        ports = (assignment["bolt_port"], assignment["http_port"])
+        if ports in seen:
+            continue
+        candidates.append(assignment)
+        seen.add(ports)
+    return candidates
+
+
+def save_port_assignment(case: TestCase, assignment: dict[str, int]) -> None:
+    with PORT_CONFIG_LOCK:
+        data = read_port_config_unlocked()
+        data[case.name] = {
+            "base": assignment["base"],
+            "bolt_port": assignment["bolt_port"],
+            "http_port": assignment["http_port"],
+        }
+        write_json(PORT_CONFIG_PATH, data)
 
 
 def log_progress(case: TestCase, stage: str, event: str) -> None:
@@ -528,6 +625,17 @@ def docker_inspect_running(container: str) -> bool | None:
     return proc.stdout.strip().lower() == "true"
 
 
+def is_port_conflict(proc: subprocess.CompletedProcess[str]) -> bool:
+    text = f"{proc.stdout}\n{proc.stderr}".lower()
+    return "address already in use" in text
+
+
+def same_port_assignment(left: dict[str, int], right: dict[str, int] | None) -> bool:
+    if right is None:
+        return False
+    return left["bolt_port"] == right["bolt_port"] and left["http_port"] == right["http_port"]
+
+
 def wait_for_neo4j_ready(case: TestCase, timeout_seconds: int = 90) -> dict[str, Any]:
     started = time.monotonic()
     deadline = time.monotonic() + timeout_seconds
@@ -569,6 +677,85 @@ def free_local_port() -> int:
         return int(sock.getsockname()[1])
 
 
+def build_docker_run_cmd(
+    case: TestCase,
+    image: str,
+    docker_env: dict[str, str],
+    assignment: dict[str, int],
+) -> list[str]:
+    cmd = [
+        "docker",
+        "run",
+        "-d",
+        "--name",
+        case.container,
+        "-p",
+        f"{assignment['bolt_port']}:7687",
+        "-p",
+        f"{assignment['http_port']}:7474",
+    ]
+    for key, value in docker_env.items():
+        cmd.extend(["-e", f"{key}={value}"])
+    cmd.append(image)
+    return cmd
+
+
+def create_neo4j_container(
+    case: TestCase,
+    cfg: dict[str, Any],
+    skip_assignment: dict[str, int] | None = None,
+) -> bool:
+    image = str(cfg.get("neo4j_image") or DEFAULT_NEO4J_IMAGE)
+    docker_env = stringify_env(cfg.get("neo4j", {}) if isinstance(cfg.get("neo4j"), dict) else {})
+    docker_env["NEO4J_AUTH"] = "none"
+    configured_before = configured_port_assignment(case)
+    candidates = [candidate for candidate in port_candidates(case) if not same_port_assignment(candidate, skip_assignment)]
+    if not candidates:
+        raise EvalError("docker", f"no valid port candidates for {case.name}")
+
+    for index, assignment in enumerate(candidates, start=1):
+        cmd = build_docker_run_cmd(case, image, docker_env, assignment)
+        proc = run_process(cmd, ROOT)
+        append_run_record(
+            case,
+            "docker_run",
+            {
+                "command": cmd,
+                "returncode": proc.returncode,
+                "stdout": proc.stdout,
+                "stderr": proc.stderr,
+                "image": image,
+                "base": assignment["base"],
+                "bolt_port": assignment["bolt_port"],
+                "http_port": assignment["http_port"],
+                "attempt": index,
+            },
+        )
+        if proc.returncode == 0:
+            if assignment["base"] != PORT_BASE_SEQUENCE[0] or configured_before is not None:
+                save_port_assignment(case, assignment)
+            wait_result = wait_for_neo4j_ready(case)
+            append_run_record(case, "docker_wait_ready", wait_result)
+            return True
+        if not is_port_conflict(proc):
+            raise EvalError("docker", f"failed to create {case.container}: {proc.stderr.strip()}")
+
+        append_run_record(
+            case,
+            "docker_port_conflict",
+            {
+                "base": assignment["base"],
+                "bolt_port": assignment["bolt_port"],
+                "http_port": assignment["http_port"],
+                "stderr": proc.stderr,
+            },
+        )
+        remove_result = remove_neo4j(case)
+        append_run_record(case, "docker_rm", {"reason": "port_conflict", **remove_result})
+
+    raise EvalError("docker", f"failed to create {case.container}: all configured port candidates are in use")
+
+
 def ensure_neo4j(case: TestCase, cfg: dict[str, Any]) -> bool:
     running = docker_inspect_running(case.container)
     append_run_record(case, "docker_inspect", {"container": case.container, "running": running})
@@ -585,48 +772,27 @@ def ensure_neo4j(case: TestCase, cfg: dict[str, Any]) -> bool:
             {"command": cmd, "returncode": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr},
         )
         if proc.returncode != 0:
+            if is_port_conflict(proc):
+                conflicting_assignment = case_port_assignment(case)
+                append_run_record(
+                    case,
+                    "docker_start_port_conflict",
+                    {
+                        "base": conflicting_assignment["base"],
+                        "bolt_port": conflicting_assignment["bolt_port"],
+                        "http_port": conflicting_assignment["http_port"],
+                        "stderr": proc.stderr,
+                    },
+                )
+                remove_result = remove_neo4j(case)
+                append_run_record(case, "docker_rm", {"reason": "port_conflict", **remove_result})
+                return create_neo4j_container(case, cfg, skip_assignment=conflicting_assignment)
             raise EvalError("docker", f"failed to start {case.container}: {proc.stderr.strip()}")
         wait_result = wait_for_neo4j_ready(case)
         append_run_record(case, "docker_wait_ready", wait_result)
         return False
 
-    image = str(cfg.get("neo4j_image") or DEFAULT_NEO4J_IMAGE)
-    docker_env = stringify_env(cfg.get("neo4j", {}) if isinstance(cfg.get("neo4j"), dict) else {})
-    docker_env["NEO4J_AUTH"] = "none"
-    cmd = [
-        "docker",
-        "run",
-        "-d",
-        "--name",
-        case.container,
-        "-p",
-        f"{case.bolt_port}:7687",
-        "-p",
-        f"{case.http_port}:7474",
-    ]
-    for key, value in docker_env.items():
-        cmd.extend(["-e", f"{key}={value}"])
-    cmd.append(image)
-
-    proc = run_process(cmd, ROOT)
-    append_run_record(
-        case,
-        "docker_run",
-        {
-            "command": cmd,
-            "returncode": proc.returncode,
-            "stdout": proc.stdout,
-            "stderr": proc.stderr,
-            "image": image,
-            "bolt_port": case.bolt_port,
-            "http_port": case.http_port,
-        },
-    )
-    if proc.returncode != 0:
-        raise EvalError("docker", f"failed to create {case.container}: {proc.stderr.strip()}")
-    wait_result = wait_for_neo4j_ready(case)
-    append_run_record(case, "docker_wait_ready", wait_result)
-    return True
+    return create_neo4j_container(case, cfg)
 
 
 def stop_neo4j(case: TestCase) -> dict[str, Any]:
