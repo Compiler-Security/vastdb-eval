@@ -15,7 +15,7 @@ DEFAULT_SOURCE = ROOT / "outputs"
 DEFAULT_DEST = ROOT / "outputs-export"
 REMOVE_RESULT_RELATIVE_PATHS = (Path("run"),)
 KEEP_TESTCASE_ENTRY_NAMES = {"results"}
-KEEP_RESULT_FILENAMES = {"log.json", "output.txt"}
+KEEP_RESULT_FILENAMES = {"output.txt"}
 KEEP_RESULT_RELATIVE_PATHS = {Path("judge/output.json")}
 TOP_LEVEL_KEEP_FILENAMES = {"summary.json"}
 REDACTED_VALUE = "<redacted>"
@@ -26,8 +26,8 @@ def parse_args() -> argparse.Namespace:
         description=(
             "Copy vastdb-eval outputs to a new directory, then keep only "
             "results/ under every CWD testcase directory. Remaining results "
-            "subdirectories keep only log.json, output.txt, and "
-            "results/judge/output.json by default. "
+            "subdirectories keep only output.txt and results/judge/output.json "
+            "by default. "
             "Top-level output files keep only summary.json."
         )
     )
@@ -51,7 +51,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--full",
         action="store_true",
-        help="export a fuller copy with more diagnostic artifacts, including results/judge/log.json",
+        help="export a fuller copy with more diagnostic artifacts, including results/**/log.json",
     )
     return parser.parse_args()
 
@@ -110,7 +110,7 @@ def top_level_removals(root: Path) -> list[Path]:
     )
 
 
-def plan_removals(root: Path, keep_judge_log: bool = False) -> tuple[list[Path], int]:
+def plan_removals(root: Path, full: bool = False) -> tuple[list[Path], int]:
     cases = testcase_dirs(root)
     removals: list[Path] = top_level_removals(root)
     for case in cases:
@@ -130,8 +130,10 @@ def plan_removals(root: Path, keep_judge_log: bool = False) -> tuple[list[Path],
                     continue
                 if path.is_file() or path.is_symlink():
                     relative_path = path.relative_to(results_dir)
-                    if relative_path == Path("judge/log.json") and not keep_judge_log:
+                    if path.name == "log.json" and not full:
                         removals.append(path)
+                        continue
+                    if path.name == "log.json" and full:
                         continue
                     if (
                         path.name not in KEEP_RESULT_FILENAMES
