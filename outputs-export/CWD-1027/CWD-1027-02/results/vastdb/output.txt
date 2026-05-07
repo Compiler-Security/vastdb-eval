@@ -1,19 +1,14 @@
+
+
 ## Root Cause
 
-The vulnerability is CWE-401 (Missing Release of Memory after Effective Lifetime). The `TileContext` structure contains two frame pointers: `out_ref` (line 169) and `prev_out_ref` (line 170). In `filter_frame()` at line 230, `tile->out_ref` is allocated via `ff_get_video_buffer()`. However, in the `uninit()` cleanup function (lines 275-279), only `tile->prev_out_ref` is freed with `av_frame_free(&tile->prev_out_ref)` at line 279 - `tile->out_ref` is never freed. This causes a memory leak because the output buffer allocated at line 230 is never released when the filter is destroyed.
+The vulnerability is a memory leak in the tile video filter. The `TileContext` struct contains two `AVFrame*` members: `out_ref` and `prev_out_ref`. In `filter_frame`, the code allocates a new video buffer via `ff_get_video_buffer()` and stores it in `tile->out_ref` (line 230). When the filter isuninitialized, `uninit()` only frees `tile->prev_out_ref` (line 279), leaving `tile->out_ref` unfreed. This causes leaked memory when the filter is unloaded.
 
 ## Trigger Path
 
-1. `bad.c:275` `uninit(AVFilterContext *ctx)`
-   - This is the filter cleanup function invoked by the libavfilter framework when the filter is destroyed.
+I was unable to trace a complete call-chain from external entry to `filter_frame` using VAST DB, as this is an internalFFmpeg filter callback set via function pointer (not a direct function call). The trigger requires the FFmpeg filter graph to process frames through this tile filter.
 
-2. External code via libavfilter framework calls `filter_frame` callback
-   - The `filter_frame` function (line 222) is registered as a callback in the `AVFilterPad` structure and is invoked by `ff_filter_frame()` from the filter graph machinery when frames are processed.
+1. `bad.c:222` `filter_frame`
+   - Entry point where `tile->out_ref` is allocated via `ff_get_video_buffer()` at line 230 when `tile->out_ref` is NULL
 
-3. `bad.c:222` `filter_frame(AVFilterLink *inlink, AVFrame *picref)`
-   - On the first invocation when `tile->out_ref` is NULL (line 229), control flows to line 230 where `ff_get_video_buffer` is called.
-
-4. `bad.c:230` `ff_get_video_buffer(outlink, outlink->w, outlink->h)`
-   - This is the known vulnerable location where memory is allocated to `tile->out_ref` but never subsequently freed in `uninit`.
-
-Note: The VAST DB query for direct callers of `filter_frame` returned no results because the invocation occurs through a function pointer callback mechanism (`AVFilterPad.filter_frame`), which static analysis cannot resolve to a specific caller. The call chain from external code to `filter_frame` is through the libavfilter framework's `ff_filter_frame()` function, which invokes the registered callback.
+**Note:** The function is registered as a callback in the AVFilterPad struct (line 108: `int (*filter_frame)(struct AVFilterLink *link, struct AVFrame *frame)`) and gets invoked by FFmpeg's filter graph infrastructure when frames are processed. The cleanup path is `bad.c:275` `uninit`, which fails tofree `tile->out_ref`.

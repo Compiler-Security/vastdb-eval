@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies the root cause (missing `bin->ne_header` NULL check in `r_bin_ne_get_segments` line 340), the crash point (`bin->ne_header->SegCount` at line 344), and the complete trigger path (`symbols` -> `r_bin_ne_get_symbols` -> `r_bin_ne_get_entrypoints` -> `r_bin_ne_get_segments`). Correctly names CWE-476. No unsupported speculation."
+    "score": 9,
+    "reason": "Correctly identifies the null dereference of bin->ne_header in r_bin_ne_get_segments (line 344) and traces the trigger path symbols→get_symbols→get_entrypoints→get_segments. Matches CVE location precisely. Brief but accurate, no unsupported speculation."
   },
   "vastdb": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies the root cause (missing `bin->ne_header` NULL check in `r_bin_ne_get_segments`), the crash point (`bin->ne_header->SegCount` at line 344), and the complete trigger path. Correctly names CWE-476. No unsupported speculation."
+    "score": 9,
+    "reason": "Correctly identifies the same null dereference root cause and trigger path as the baseline. Matches CVE location. Accurate and complete with no unsupported speculation."
   }
 }

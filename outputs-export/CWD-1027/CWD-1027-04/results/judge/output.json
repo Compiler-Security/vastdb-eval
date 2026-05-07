@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": true,
-    "score": 7,
-    "reason": "Correctly identifies the core issue: `out` frame allocated at line 813 leaks on the `create_filtergraph` error path (lines 890-891). However, it misses other error paths (e.g., `av_frame_copy_props` failure at line 826, rgb_sz allocation failure at line 885, yuv2yuv_passthrough copy failure at line 906) where both `in` and `out` are also leaked in the bad version. Accurate for the primary trigger path but incomplete."
+    "correct": false,
+    "score": 5,
+    "reason": "Correctly identifies the `out` frame leak on error paths (CWE-401) but has an inaccurate claim that RGB/dither scratch buffers are 'never freed in any code path' — these are persistent context members freed by uninit(), not a leak. Also only mentions the create_filtergraph error path, missing three other error paths, and the trigger path is truncated/incomplete."
   },
   "vastdb": {
     "correct": true,
-    "score": 7,
-    "reason": "Correctly identifies the same core `out` frame leak on the `create_filtergraph` error path with a clear step-by-step trigger path. Same limitations as baseline: misses the other error paths (av_frame_copy_props, rgb_sz alloc failure, yuv2yuv_passthrough copy) where `in` and `out` are both leaked. No unsupported speculation; analysis is accurate but incomplete."
+    "score": 8,
+    "reason": "Accurately identifies the root cause (missing av_frame_free for `out` on error paths causing CWE-401) and describes the trigger path correctly. Mentions multiple error paths including create_filtergraph and processing code. Minor imprecision about 'ownership transfer to the next filter' being the primary concern but overall sound with no major inaccuracies."
   }
 }

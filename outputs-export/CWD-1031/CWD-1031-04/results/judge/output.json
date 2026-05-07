@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies the NULL pointer dereference in ossl_quic_get_cipher_by_char (line 321) where ciph from ssl3_get_cipher_by_char can be NULL when ossl_bsearch fails to find a matching cipher. Correctly traces the full trigger path from entry through binary search failure to the NULL dereference sink. No unsupported speculation."
+    "score": 9,
+    "reason": "Accurately identifies the NULL pointer dereference in ossl_quic_get_cipher_by_char (missing NULL check on ciph before ciph->algorithm2), correctly traces the data-flow from ossl_bsearch returning NULL through ssl3_get_cipher_by_char/ssl3_get_cipher_by_id, and covers the entire trigger path. No unsupported speculation. Slight deduction for referencing original OpenSSL line numbers rather than the simplified test file consistently."
   },
   "vastdb": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies the same NULL pointer dereference root cause, correctly pinpoints ossl_bsearch line 254-255 as the NULL source and ciph->algorithm2 dereference at line 321 as the sink. Traces the trigger path correctly from entry through ssl3_get_cipher_by_char/ssl3_get_cipher_by_id to the vulnerable dereference. No unsupported speculation."
+    "score": 9,
+    "reason": "Accurately identifies the same NULL pointer dereference (CWE-476), correctly traces the NULL from ossl_bsearch through ssl3_get_cipher_by_id/ssl3_get_cipher_by_char to the dereference at line 321, and uses correct test-file line numbers. No unsupported speculation. Slightly less detail on the OBJ_bsearch wrapper chain compared to baseline, but still fully accurate."
   }
 }

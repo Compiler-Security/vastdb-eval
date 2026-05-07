@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 8,
-    "reason": "Correctly identifies FILTER_INTRA() macro with negative offsets (mrefs/prefs/mrefs3/prefs3) as root cause, and insufficient h<3 check in config_props. Trigger path (config_props→filter→filter_slice→filter_intra) is accurate. Minor imprecision: says 'read/write' but actual OOB is on cur reads (writes go to separate dst buffer). Less specific on exact conditions (y+df vs td->h) that produce negative offsets."
+    "score": 7,
+    "reason": "Correctly identifies that config_props() only validates luma dimensions while chroma planes are downsampled, causing smaller chroma buffers to be processed with the same filter. The analysis is accurate but incomplete (truncated) and slightly over-emphasizes chroma subsampling as the trigger mechanism when the fix simply raises minimum height from 3 to 4."
   },
   "vastdb": {
     "correct": true,
-    "score": 9,
-    "reason": "Accurately identifies FILTER_INTRA() macro with negative offsets as root cause, correctly notes the insufficient h<3 boundary check, and provides more specific condition details (y+df >= td->h, y <= df-1) that trigger negative offset computation. Trigger path is precise and complete. Slight imprecision on CWE-787 classification (OOB is on reads, not writes on cur buffer), but this matches the CVE metadata. No unsupported speculation."
+    "score": 8,
+    "reason": "Correctly identifies the OOB write in FILTER_INTRA() macro and points to the specific array offsets (cur[mrefs], cur[prefs], cur[mrefs3], cur[prefs3]) that cause the overflow. Also correctly identifies insufficient validation in config_props at line 467. Accurate but truncated before fully elaborating the trigger path."
   }
 }

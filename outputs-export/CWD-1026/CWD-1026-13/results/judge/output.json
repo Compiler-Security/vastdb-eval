@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": true,
-    "score": 8,
-    "reason": "Correctly identifies the struct copy (dat1 = *hdl_dat) preserving a chain pointer that becomes stale after realloc moves the buffer. Minor imprecision: describes bit_chain_free (line 551) as the free creating the dangling pointer, when realloc (line 456) already freed it — the UAF read occurs during the earlier bit_copy_chain call."
+    "correct": false,
+    "score": 4,
+    "reason": "Correctly identifies the general realloc-UAF in bit_chain_alloc_size/bit_read_RC but frames the trigger around stale indices/bounds rather than the actual root cause: dat and tmp_dat sharing the same chain pointer in bit_copy_chain. The trigger path speculates about PLANESURFACE macro expansion without pinpointing the shared-chain scenario that the fix (early-return guard when dat->chain==tmp_dat->chain) addresses."
   },
   "vastdb": {
     "correct": true,
-    "score": 8,
-    "reason": "Correctly identifies the buffer reallocation without pointer update mechanism, and traces the trigger path from START_HANDLE_STREAM through obj_flush_hdlstream to bit_copy_chain and bit_read_RC. Same minor imprecision as baseline about the free timing (bit_chain_free vs realloc). Concise and accurate."
+    "score": 7,
+    "reason": "Correctly traces the full trigger path: obj_flush_hdlstream → bit_copy_chain → bit_chain_alloc → bit_chain_alloc_size → realloc frees old buffer → bit_read_RC accesses stale chain pointer. Recognizes that tmp_dat's chain pointer becomes stale after realloc of dat's chain. Slightly vague about the exact condition (shared chain pointers) but fundamentally accurate and well-supported."
   }
 }

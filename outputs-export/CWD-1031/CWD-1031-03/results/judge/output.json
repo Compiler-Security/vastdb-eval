@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies CWE-476 NULL pointer dereference, the root cause (ignoring init_get_bits8 return value), and the full trigger path from init_get_bits8 setting buffer=NULL through ff_ac3_parse_header's get_bits call to UPDATE_CACHE macro dereference. All line numbers match. No unsupported speculation."
+    "correct": false,
+    "score": 2,
+    "reason": "Baseline is truncated mid-sentence; the visible portion speculates about NULL buffer+size=0 being 'accepted' by init_get_bits8, which misidentifies the issue. The real root cause is the unchecked return value of init_get_bits8, not the input acceptance behavior."
   },
   "vastdb": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies CWE-476 NULL pointer dereference, the root cause (no input validation leading to NULL buffer in GetBitContext), and the full trigger path through init_get_bits8, ff_ac3_parse_header, and get_bits/UPDATE_CACHE. All line numbers match. No unsupported speculation."
+    "score": 9,
+    "reason": "Correctly identifies NULL pointer dereference (CWE-476), the missing return-value check of init_get_bits8 at line 383, and the full trigger path through ff_ac3_parse_header to get_bits(gbc,16) at line 282. Minor imprecision about 'negative size' (size_t is unsigned) does not undermine the fundamentally correct analysis."
   }
 }

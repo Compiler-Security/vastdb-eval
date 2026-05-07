@@ -2,11 +2,11 @@
   "baseline": {
     "correct": true,
     "score": 10,
-    "reason": "Accurately identifies the root cause (tile->out_ref allocated at line 230 via ff_get_video_buffer but never freed in uninit), the exact vulnerable location, and the trigger path (filter_frame allocates/uninit leaks). No unsupported speculation."
+    "reason": "Accurately identifies the root cause: missing av_frame_free(&tile->out_ref) in uninit() at line 275-280, while prev_out_ref is freed. Correctly traces allocation at line 230 via ff_get_video_buffer. No unsupported speculation; properly notes filter_graph callback nature."
   },
   "vastdb": {
     "correct": true,
     "score": 10,
-    "reason": "Accurately identifies CWE-401 root cause, the allocation site at line 230, and the missing av_frame_free in uninit. Correctly describes the callback-based trigger path. No unsupported speculation."
+    "reason": "Accurately identifies root cause: missing av_frame_free for out_ref in uninit(). Correctly identifies allocation in filter_frame line 230 and notes the callback registration mechanism. No unsupported speculation; properly acknowledges inability to trace full call chain from external entry."
   }
 }

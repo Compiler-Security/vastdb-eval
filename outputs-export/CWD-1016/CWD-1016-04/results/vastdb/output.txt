@@ -1,27 +1,16 @@
-Now I have all the evidence needed. Let me provide the final analysis.
+
+
+Based on my analysis:
 
 ## Root Cause
 
-The vulnerability is a CWE-787 Out-of-bounds Write caused by a stride mismatch between the pre-computed buffer stride and the actual frame linesize. In `ff_vmafmotion_init`, `s->stride` is computed as `FFALIGN(w * sizeof(uint16_t), 32)` based on the input width `w` (line 405), and `s->temp_data` is allocated with size `s->stride * h` (line 410). Later in `ff_vmafmotion_process`, the `convolution_y` function is called with `s->stride` as the destination stride but uses `ref->linesize[0]` from the actual input frame as the source stride (line 497-498). When `ref->linesize[0]` differs from the pre-computed `s->stride` (which can happen due to different padding/alignment in video frames), the convolution operation can write beyond the allocated buffer bounds, causing an out-of-bounds write.
+The vulnerability is an out-of-bounds write in the `convolution_y` function. The root cause is a **stride mismatch**: In `ff_vmafmotion_init` (line 405), `s->stride` is computed as `FFALIGN(w * sizeof(uint16_t), 32)` = `FFALIGN(w * 2, 32)` (32-byte aligned). But the convolution_y call at line 497-498 passes `ref->linesize[0]` as the source stride instead of `s->stride`. When `ref->linesize[0]` has different alignment or value than the expected 32-byte aligned stride, the memory access `dst[i * dst_stride + j]` at line 457, 466, 479 writes beyond the allocated `s->temp_data` buffer (allocated at line 410 based on `s->stride * h`).
 
 ## Trigger Path
 
-1. `bad.c:423` `config_input_ref`
-   - Called during filter configuration to initialize the motion detection context
-
-2. `bad.c:428` `ff_vmafmotion_init` (via call at line 428)
-   - Sets `s->width = w` (line 403) and computes `s->stride = FFALIGN(w * sizeof(uint16_t), 32)` (line 405)
-   - Allocates `s->temp_data` with size `s->stride * h` (line 410)
-
-3. `bad.c:531` `filter_frame`
-   - Entry point when a new frame arrives for processing
-
-4. `bad.c:534` `do_vmafmotion` (via call at line 534)
-   - Calls `ff_vmafmotion_process` to compute the motion score
-
-5. `bad.c:523` `ff_vmafmotion_process` (via call at line 523)
-   - Uses `s->width` and `s->stride` from initialization to call the convolution
-
-6. `bad.c:497` `ff_vmafmotion_process` - vulnerable operation
-   - Calls `s->vmafdsp.convolution_y(s->filter, 5, ref->data[0], s->temp_data, s->width, s->height, ref->linesize[0], s->stride)`
-   - Uses pre-computed `s->stride` which may not match `ref->linesize[0]`, causing out-of-bounds write to `s->temp_data`
+1. `bad.c:531` `filter_frame` - entry point, receives AVFrame
+2. `bad.c:534` calls `do_vmafmotion(ctx, ref)` - passes frame to process
+3. `bad.c:523` `do_vmafmotion` - calls `ff_vmafmotion_process(&s->data, ref)`
+4. `bad.c:428` `config_input_ref` - before any frame arrives, initializes `s->data` by calling `ff_vmafmotion_init(&s->data, w, h, fmt)` - sets `s->width = w` and allocates buffers based on `s->stride`
+5. `bad.c:403` `ff_vmafmotion_init` - stores width and computes stride (32-byte aligned), allocates buffers
+6. `bad.c:497` `ff_vmafmotion_process` - calls `convolution_y` with **stride mismatch**: uses `ref->linesize[0]` instead of `s->stride` for source stride, causing out-of-bounds writes to `s->temp_data` buffer

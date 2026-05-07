@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": false,
-    "score": 2,
-    "reason": "Describes a nonexistent code flow: claims line 759 (RelinquishMagickMemory) frees blob then line 761 (ResizeQuantumMemory) uses freed blob, but these are in mutually exclusive if-else branches. Misses the actual root cause in DetachBlob returning a dangling pointer after UnmapBlob."
+    "correct": true,
+    "score": 10,
+    "reason": "Accurately identifies CWE-416 UAF in DetachBlob(): UnmapBlob unmaps blob_info->data but the stale pointer is saved and returned, then passed to RelinquishMagickMemory. Trigger path is correct and complete, no unsupported speculation."
   },
   "vastdb": {
     "correct": true,
-    "score": 8,
-    "reason": "Correctly traces the root cause: DetachBlob unmaps via UnmapBlob then returns the dangling pointer; the caller passes it to RelinquishMagickMemory (UAF). Slightly imprecise about 'double-free' (munmap vs free are different APIs), but the mechanism and trigger path are accurately identified."
+    "score": 10,
+    "reason": "Accurately identifies CWE-416 UAF with the same root cause and trigger path as baseline. Correctly traces UnmapBlob -> dangling pointer return -> RelinquishMagickMemory double-free. No unsupported speculation."
   }
 }

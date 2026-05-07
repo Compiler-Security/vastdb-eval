@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies the NULL pointer dereference (CWE-476). Correctly pinpoints that ctx->cur_frame_length is zero at init time (bad.c:774), so av_calloc returns NULL for ctx->raw_mantissa[c], and read_diff_float_data dereferences it at bad.c:921 without a NULL check. Trigger path (decode_init -> decode_frame -> read_frame_data -> read_diff_float_data) is precise. No unsupported speculation."
+    "correct": false,
+    "score": 2,
+    "reason": "Correctly identifies the sink at line 921 and the NULL pointer dereference CWE, but the root cause analysis is wrong/speculative (blames 'nbits index corruption' and 'certain bitstream conditions'). Fails to identify the actual root cause: missing NULL check after av_calloc at line 774 for per-channel raw_mantissa[c]."
   },
   "vastdb": {
-    "correct": true,
-    "score": 10,
-    "reason": "Also accurately identifies the same NULL pointer dereference with correct source/sink locations. Explains that ctx is zero-initialized (cur_frame_length=0), av_calloc returns NULL, and read_diff_float_data dereferences it. Trigger path is identical and correct. No unsupported speculation."
+    "correct": false,
+    "score": 2,
+    "reason": "Identifies the allocation area but makes a critical factual error: claims the NULL dereference occurs when processing 'non-floating point ALS streams' (sconf->floating false). However, read_diff_float_data is guarded by 'if (sconf->floating)' at line 617, so it is never called for non-float streams. The actual trigger requires floating=true and av_calloc failure at line 774."
   }
 }

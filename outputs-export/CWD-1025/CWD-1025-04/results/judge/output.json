@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": true,
-    "score": 9,
-    "reason": "Accurately identifies double free of `task`: pushed to `task_queue` at line 263 (ownership transferred), then `av_freep(&task)` at line 271 on error path, causing a second free when the queue is later destroyed or processed. Trigger path is correctly traced without speculation."
+    "correct": false,
+    "score": 3,
+    "reason": "Baseline incorrectly claims line 264 (inside 'if push fails' block) always frees task after line 263's queue push, misunderstanding the control flow. It frames the double-free as free-at-264 then free-at-271, but line 264 only executes on push failure. The actual root cause is that task is freed at lines 271/278 while still owned by task_queue/lltask_queue entries."
   },
   "vastdb": {
-    "correct": false,
-    "score": 4,
-    "reason": "Gets the general vulnerability type (double free) right, but critically misidentifies the trigger mechanism. Claims task is freed 'implicitly through the lltask structure's failed push', but `av_freep(&lltask)` only frees the `LastLevelTaskItem` struct, not the `TaskItem` pointed to by `lltask->task`. Misses the real mechanism: task is already in `task_queue` (line 263), so `av_freep(&task)` at line 271 creates a use-after-free/double-free via the queue."
+    "correct": true,
+    "score": 8,
+    "reason": "VASTDB correctly identifies the core double-free mechanism: task is freed by the caller while queues (task_queue, lltask_queue) still hold references. It describes two trigger paths (push failure and later error) accurately. Minor inaccuracy: it implies extract_lltask_from_task could return error after successful push, when the real error-after-push-survival path is the ff_safe_queue_pop_front failure at line 276."
   }
 }

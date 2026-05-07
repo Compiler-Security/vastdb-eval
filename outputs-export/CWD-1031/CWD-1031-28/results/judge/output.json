@@ -2,11 +2,11 @@
   "baseline": {
     "correct": true,
     "score": 10,
-    "reason": "Accurately identifies the CWE-476 null pointer dereference at line 563 where cJSON_GetObjectItem() return is dereferenced without NULL check. Correctly traces the data flow (entry → JSON parsing → vulnerable dereference) and the fix (using cJSON_GetStringValue()). No unsupported speculation."
+    "reason": "Accurately identifies the CWE-476 null pointer dereference at bad.c:563, correctly explains that cJSON_GetObjectItem returns NULL when 'type' key is absent and is dereferenced before the ineffective NULL check at line 564. Trigger path is fully correct and matches the CVE description."
   },
   "vastdb": {
     "correct": true,
     "score": 10,
-    "reason": "Accurately identifies the CWE-476 null pointer dereference at line 563 with the correct trigger condition (missing 'type' key in JSON). Notes the late check at line 564 and correctly describes the fix. No unsupported speculation."
+    "reason": "Correctly identifies the same root cause (unchecked cJSON_GetObjectItem return dereference at bad.c:563) and trigger path. Also notes the check-after-dereference issue and references the cJSON_GetObjectItem implementation. Slightly more concise than baseline but equally accurate."
   }
 }

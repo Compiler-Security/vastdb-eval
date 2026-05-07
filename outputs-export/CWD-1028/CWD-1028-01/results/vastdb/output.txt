@@ -1,21 +1,15 @@
-Now I have enough information to provide the analysis. Let me verify the array size definition to confirm the vulnerability:
 
-The code at line 248 shows `substream[1]` - an array of only 1 element, but `get_bits(gbc, 3)` at line 593 can produce values 0-7.
+
+Based on my code analysis, I can now provide the vulnerability explanation.
 
 ## Root Cause
 
-The vulnerability is an out-of-bounds array access (CWE-129) in the `handle_eac3` function. The `hdr->substreamid` field is populated by `get_bits(gbc, 3)` in `avpriv_ac3_parse_header` (line 593), which produces a 3-bit value ranging from 0-7. However, the `substream` array in `struct eac3_info` is declared with only 1 element (line 248: `substream[1]`). At line 448, `info->substream[hdr->substreamid].fscod = hdr->sr_code;` uses this unsanitized index to access the array, allowing values >= 1 to trigger out-of-bounds memory access. Although there are conditional checks at lines 426-444, they do not universally validate that `substreamid < 1` before the array access at line 448.
+The vulnerability is an improper array index validation (CWE-129). The `substreamid` field is extracted from the bitstream using 3 bits (`get_bits(gbc, 3)` at line 593), allowing values 0-7. This value is then used to index the `substream` array at line 448 (`info->substream[hdr->substreamid].fscod = hdr->sr_code;`). However, the `substream` array is declared with only **1 element** (`struct { ... } substream[1];` at line 248). When `hdr->substreamid` is greater than 0 (e.g., 1-7), accessing `info->substream[hdr->substreamid]` causes an out-of-bounds array access, leading to memory corruption.
 
 ## Trigger Path
 
-1. `bad.c:400` `handle_eac3`
-   - Top-level function that processes E-AC-3 audio packets. Calls `avpriv_ac3_parse_header` to parse header data.
+1. `bad.c:522` `avpriv_ac3_parse_header`
+   - Parses the E-AC-3 audio frame header and sets `hdr->substreamid` from the bitstream (3 bits, value range 0-7)
 
-2. `bad.c:412` `avpriv_ac3_parse_header` (call within handle_eac3)
-   - Calls `avpriv_ac3_parse_header(&gbc, &hdr)` to parse the AC-3 header and populate the `hdr` structure.
-
-3. `bad.c:593` (inside avpriv_ac3_parse_header)
-   - Sets `hdr->substreamid = get_bits(gbc, 3)` - reads a 3-bit value (0-7) from the bitstream into the substreamid field.
-
-4. `bad.c:448` (inside handle_eac3, after returning from avpriv_ac3_parse_header)
-   - Executes `info->substream[hdr->substreamid].fscod = hdr->sr_code;` - uses the unvalidated substreamid as an array index. Since the array has only 1 element, any value >= 1 causes out-of-bounds access.
+2. `bad.c:400` `handle_eac3`
+   - Calls `avpriv_ac3_parse_header` at line 412 to parse the header, then uses the returned `hdr->substreamid` to index the `substream` array at line 448 without bounds checking

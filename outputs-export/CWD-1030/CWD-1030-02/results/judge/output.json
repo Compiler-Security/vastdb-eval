@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies the uninitialized r_symbol due to update_all_relocations allocating without zeroing, and dump_relocations returning early on slurp_rela_relocs failure. Trigger path correctly traces from process_object through process_relocs to process_got_section_contents free(). No unsupported speculation."
+    "score": 9,
+    "reason": "Accurately identifies the inconsistency between pre-allocated all_relocations_root and unpopulated r_symbol after dump_relocations/slurp_rela_relocs failure, with correct trigger path from process_object to process_got_section_contents. Minor: labels it 'use-after-free' (CWE-416) rather than the correct CWE-763 'release of invalid pointer', but the described mechanism is correct."
   },
   "vastdb": {
     "correct": true,
-    "score": 10,
-    "reason": "Correctly identifies the same root cause and trigger path. Notes that rels output parameter is unset on slurp failure. Equivalent in accuracy to baseline. No unsupported speculation."
+    "score": 9,
+    "reason": "Accurately identifies the same root cause and trigger path as baseline, correctly noting that r_symbol contains uninitialized garbage values freed by the cleanup loop in process_got_section_contents. Cleanly traces the flow from update_all_relocations allocation through dump_relocations failure to the free sink. No substantive errors."
   }
 }

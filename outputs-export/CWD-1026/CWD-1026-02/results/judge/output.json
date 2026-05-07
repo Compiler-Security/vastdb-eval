@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": false,
-    "score": 3,
-    "reason": "Correctly identifies source (av_freep line 278) and sink (line 461), but the trigger path is fundamentally wrong — claims decode_frame's while-loop continues to FTCH after init_buffers failure. In actual code, process_frame_obj returns error and decode_frame returns immediately (bad.c:553–554), so FTCH is never reached in the same frame. The NVD real root cause involves a different path where process_frame_obj returns 0 (not error) for invalid-size FOBJ, leaving have_dimensions=0 while STOR still saves data."
+    "score": 5,
+    "reason": "Correctly identifies UAF type, stored_frame variable, source (av_freep in destroy_buffers), and sink (process_ftch). But the trigger path is wrong: claims FOBJ -> init_buffers fail -> later FTCH in same decode cycle, which is impossible because init_buffers failure in a direct FOBJ causes decode_frame to return early. Misses the correct mechanism where the UAF occurs within process_ftch itself when its internal call to process_frame_obj triggers the free, followed by write-back to the freed sf pointer (lines 497-498)."
   },
   "vastdb": {
-    "correct": true,
-    "score": 7,
-    "reason": "Correctly identifies source (av_freep line 278), sink (line 461), and the cross-frame UAF trigger. Accurately says 'in a subsequent decoder call' rather than claiming same-frame continuation. The root cause description (init_buffers failure → destroy_buffers frees stored_frame → subsequent FTCH accesses freed pointer) matches the code's actual data flow. Loses points for not reaching the more precise NVD mechanism (FOBJ returning 0 with have_dimensions unset, then STOR/FTCH triggering re-init)."
+    "correct": false,
+    "score": 5,
+    "reason": "Same core issue as baseline: correctly identifies type, variable, and functions but describes an impossible trigger path. Claims init_buffers failure happens in decode_frame (step 2) before FTCH (step 5), but the error return from process_frame_obj would prevent FTCH from ever being reached. Misses the actual trigger where process_ftch calls process_frame_obj internally, init_buffers frees stored_frame, and the write-back in process_ftch accesses the freed memory."
   }
 }

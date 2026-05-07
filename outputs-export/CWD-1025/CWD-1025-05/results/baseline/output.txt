@@ -1,24 +1,19 @@
+
+
 ## Root Cause
 
-The vulnerability is a Double Free (CWE-415) in the `chains` pointer. At lines 509-513, when `num_of_syms == 0`, the code attempts to free `buckets` and `chains` but contains a bug: when freeing `chains`, it incorrectly sets `buckets = NULL` instead of `chains = NULL` (line 512). This leaves `chains` pointing to freed memory. Later, when `process_symbol_table` is called (lines 1538-1607), it unconditionally frees `chains` at line 1606, even though the memory was already freed at the source location, causing a double free.
+The vulnerability is a double free in the `chains` variable. At lines 509-515 in `get_num_dynamic_syms()`, when `num_of_syms == 0`, the code attempts to free both `buckets` and `chains`. However, there is a typo: after `free(chains)` at line 511, the code incorrectly sets `buckets = NULL` (line 512) instead of `chains = NULL`. This leaves `chains` pointing to the freed memory. Later, when `process_symbol_table()` is called, it again attempts to free `chains` at line 1606, causing a double free.
 
 ## Trigger Path
 
-1. `bad.c:1335` `process_object`
-   - Calls `process_dynamic_section(filedata)` which internally calls `get_num_dynamic_syms`
+1. `bad.c:1278` `process_object(Filedata *filedata)`
+   - Top-level function that processes an ELF file; calls `process_dynamic_section()` at line 1335 and `process_symbol_table()` at line 1345
 
-2. `bad.c:741` `process_dynamic_section`
-   - Calls `get_num_dynamic_syms(filedata)` which processes hash table data
+2. `bad.c:678` `process_dynamic_section(Filedata *filedata)`
+   - Processes the dynamic section; calls `get_num_dynamic_syms()` at line 741 when dynamic hash info exists
 
-3. `bad.c:460` `get_num_dynamic_syms`
-   - Reads hash table information and allocates `buckets` and `chains` via `get_dynamic_data` (lines 500-501)
-   - At line 504, if `num_of_syms == 0`, it enters the cleanup block at lines 505-515
-   - At lines 509-513, it frees `chains` but incorrectly sets `buckets = NULL` instead of `chains = NULL`, leaving `chains` with dangling pointer
+3. `bad.c:460` `get_num_dynamic_syms(Filedata *filedata)`
+   - Reads hash table data and allocates `buckets` and `chains` via `get_dynamic_data()`. When `num_of_syms == 0` (lines 504-515), jumps to `no_hash:` label and incorrectly frees `chains` at line 511 while setting `buckets = NULL` (line 512) instead of `chains = NULL`, leaving the dangling pointer
 
-4. `bad.c:1345` `process_object`
-   - After `process_dynamic_section` returns, calls `process_symbol_table(filedata)`
-
-5. `bad.c:1538` `process_symbol_table`
-   - When `do_histogram` is true and `buckets != NULL`, processes histogram
-   - At lines 1603-1607, unconditionally frees `buckets` and `chains` without checking if already freed
-   - This attempts to free `chains` a second time, triggering the double free vulnerability
+4. `bad.c:1454` `process_symbol_table(Filedata *filedata)`
+   - Called after `process_dynamic_section()` completes; attempts to free the already-freed `chains` at line 1606, triggering the double free vulnerability

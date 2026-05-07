@@ -1,17 +1,7 @@
+
+
+Now I have analyzed the code. Let me document the vulnerability.
+
 ## Root Cause
 
-The vulnerability is an out-of-bounds write in the `FILTER_INTRA()` macro (line 434-441). The macro accesses `cur[mrefs]`, `cur[prefs]`, `cur[mrefs3]`, and `cur[prefs3]` using array offsets that can be negative. When `filter_intra` is called from `filter_slice` (line 510), it passes offset values like `-refs`, `-3*refs` when certain conditions are met (e.g., `y > (df - 1)`). These negative offsets cause memory access before the base `cur` pointer, resulting in out-of-bounds read/write. The source check at line 467 `if (link->w < 3 || link->h < 3)` validates minimum dimensions but does not prevent the out-of-bounds access caused by the offset calculations in `FILTER_INTRA()` when the width/height combined with the offset values exceed buffer boundaries.
-
-## Trigger Path
-
-1. `bad.c:453` `config_props`
-   - Validates link dimensions but sets up the filter function pointers; returns 0 on success allowing program flow to continue to filtering.
-
-2. `bad.c:536` `filter`
-   - Main filtering entry point called with `dstpic` frame; sets `td.w` and `td.h` from `dstpic->width` and `dstpic->height`, then calls `ctx->internal->execute()` to process slices.
-
-3. `bad.c:490` `filter_slice`
-   - Called for each job/slice; computes offset values `refs`, `mrefs`, `prefs`, `mrefs3`, `prefs3` based on `y` position and frame dimensions; when `yadif->current_field == YADIF_FIELD_END`, calls `s->filter_intra` with potentially negative offset values.
-
-4. `bad.c:443` `filter_intra`
-   - Receives the offset parameters and invokes `FILTER_INTRA()` macro which performs the out-of-bounds write via `cur[mrefs]`, `cur[prefs]`, `cur[mrefs3]`, `cur[prefs3]` and `dst[0]` accesses.
+The vulnerability is in the BWDIF video deinterlacing filter. The `config_props()` function at line 467 only validates the luma dimensions (`link->w` and `link->h`), checking that both are at least 3 pixels to ensure the filter algorithm has sufficient data. However, when processing chroma planes (chrominance channels), the dimensions are downsampled using `AV_CEIL_RSHIFT()` at lines 549-550. For 4:2:0 formats, chroma planes can be half the luma dimensions. If the luma dimensions are exactly 3, the chroma dimensions

@@ -1,18 +1,18 @@
+
+
+Now I have all the evidence needed. Let me provide the final analysis.
+
 ## Root Cause
 
-A `GF_PropertyMap` is allocated at line 799 in `check_new_pid_props` (which internally calls `gf_props_new` that uses `GF_SAFEALLOC(map, GF_PropertyMap)` at line 842) and added to `dst_pid->properties` at line 803. When `gf_filter_pid_merge_properties_internal` executes and finds no source properties to copy (lines 887-894), it returns `GF_OK` at line 893 without freeing the newly allocated map. The map remains in the `pid->properties` list but is never cleaned up, causing a memory leak (CWE-401).
+A `GF_PropertyMap` is allocated at line 842 in `gf_props_new` via `GF_SAFEALLOC(map, GF_PropertyMap)` and added to `dst_pid->properties` list at line 803 in `check_new_pid_props`. When `gf_filter_pid_merge_properties_internal` later finds no source properties to copy (when `src_props` is NULL at lines 887-894), it returns `GF_OK` at line 893 without freeing the newly allocated map. The map remains allocated with `reference_count=1` in the PID's properties list but is never cleaned up, causing a memory leak (CWE-401).
 
 ## Trigger Path
 
 1. `bad.c:856` `gf_filter_pid_merge_properties_internal`
-   - Entry function that orchestrates property merging between filter PIDs
-   - Calls `check_new_pid_props` at line 869 to get/create destination properties
+   - Entry function that orchestrates property merging between filter PIDs. Calls `check_new_pid_props` at line 869 to get/create destination properties.
 
 2. `bad.c:785` `check_new_pid_props`
-   - Calls `gf_props_new` at line 799 to allocate a new `GF_PropertyMap`
-   - The allocation uses `GF_SAFEALLOC(map, GF_PropertyMap)` at line 842 (the source anchor)
-   - Adds the map to `pid->properties` list at line 803
+   - Calls `gf_props_new` at line 799 to allocate a new `GF_PropertyMap`. The allocation uses `GF_SAFEALLOC(map, GF_PropertyMap)` at line 842 (the source anchor). Adds the map to `pid->properties` list at line 803. Returns the map at line 832.
 
 3. `bad.c:893` (inside `gf_filter_pid_merge_properties_internal`)
-   - If `src_props` is NULL (lines 887-894), returns `GF_OK` early (the sink anchor)
-   - The newly created map is now orphaned in the properties list with no cleanup path
+   - If `src_props` is NULL (lines 887-894), returns `GF_OK` early (the sink anchor). The newly created map is now orphaned in the properties list with no cleanup path, causing the memory leak.

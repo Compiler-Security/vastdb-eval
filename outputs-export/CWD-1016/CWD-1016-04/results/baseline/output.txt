@@ -1,20 +1,22 @@
+
+
 ## Root Cause
 
-The vulnerability is an out-of-bounds write in the `convolution_y` function. The issue stems from `s->width = w;` at line 403 in `ff_vmafmotion_init`, which stores the width from the filter's input link configuration (`ctx->inputs[0]->w`). Later, in `ff_vmafmotion_process` (line 497-498), `convolution_y` is called using `s->width` and `s->height` from the filter context, but the actual frame `ref` may have different dimensions. If `ref->data[0]` has a larger width than the configured `s->width`, the function reads out-of-bounds from `ref->data[0]`. More critically, the destination buffer `s->temp_data` was allocated based on the configured `s->stride * s->height`, but the writes at lines 457, 466, and 479 use `ref->linesize[0]` as the source stride while still using `s->stride` as the destination stride, causing a mismatch that leads to out-of-bounds writes when processing frames with different stride values.
+The vulnerability is caused by a mismatch between the width stored in `s->width` and the actual width of the input frame `ref`. At line 403, `s->width` is set to the value `w` passed from `config_input_ref`, which comes from `ctx->inputs[0]->w`. However, at line 497, `convolution_y` uses `s->width` as the iteration bound while reading from `ref->data[0]` and writing to `s->temp_data`. If the caller passes a frame whose actual dimensions (`ref->width`, `ref->linesize[0]`) differ from the initialized `s->width`, the convolution operations can write beyond the bounds of `s->temp_data` (which was allocated based on `s->stride` and `s->height`). This constitutes an out-of-bounds write (CWE-787).
 
 ## Trigger Path
 
 1. `bad.c:423` `config_input_ref`
-   - Called during filter initialization to configure the filter with input link dimensions. Calls `ff_vmafmotion_init` with `ctx->inputs[0]->w` and `ctx->inputs[0]->h`, storing these in `s->width` and `s->height`, and allocating buffers based on these dimensions.
+   - Called during filter graph initialization to configure the reference input; extracts dimensions from `inlink` and calls `ff_vmafmotion_init`, setting up `s->width`, `s->height`, and allocating buffers.
 
-2. `bad.c:396` `ff_vmafmotion_init`
-   - Sets `s->width = w;` at line 403 and allocates `s->temp_data` with size `s->stride * h` where `s->stride = FFALIGN(w * sizeof(uint16_t), 32)`.
+2. `bad.c:428` `ff_vmafmotion_init`
+   - Stores the input link's dimensions into `s->width` and `s->height` at line 403-404; allocates internal buffers (`blur_data`, `temp_data`) based on these dimensions.
 
-3. `bad.c:518` `do_vmafmotion`
-   - Called for each frame during filtering. Receives `AVFrame *ref` which may have different dimensions than configured. Calls `ff_vmafmotion_process(&s->data, ref)`.
+3. `bad.c:531` `filter_frame`
+   - Entry point when a new frame arrives from the filter graph; receives the actual input frame `ref` which may have dimensions differing from those used during initialization.
 
-4. `bad.c:493` `ff_vmafmotion_process`
-   - Calls `s->vmafdsp.convolution_y(s->filter, 5, ref->data[0], s->temp_data, s->width, s->height, ref->linesize[0], s->stride)` at lines 497-498. Uses filter context dimensions (`s->width`, `s->height`) rather than actual frame dimensions, with source stride from `ref->linesize[0]` and dest stride from `s->stride`.
+4. `bad.c:518` `do_vmafmotion`
+   - Extracts `VMAFMotionContext *s` from filter context and calls `ff_vmafmotion_process` passing `ref`.
 
-5. `bad.c:433-482` `convolution_y_8bit` / `convolution_y_10bit`
-   - The sink function that performs out-of-bounds writes. At lines 457, 466, and 479, it writes to `dst[i * dst_stride + j]` using `dst_stride = s->stride` but reads from source using `src_stride = ref->linesize[0] / sizeof(type)`. When frame stride differs from configured stride, buffer overflow occurs.
+5. `bad.c:493` `ff_vmafmotion_process`
+   - The vulnerable function: calls `s->vmafdsp.convolution_y` using `s->width` (initialized value) while operating on `ref->data[0]` (actual frame data with its own dimensions), causing out-of-bounds write when they differ.

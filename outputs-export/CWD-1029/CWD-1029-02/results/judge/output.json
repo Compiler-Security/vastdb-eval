@@ -2,11 +2,11 @@
   "baseline": {
     "correct": true,
     "score": 10,
-    "reason": "Accurately identifies the OOB read at line 900 where attacker-controlled `(*parent)->address` is used without bounds check to compute pointer `p`, traces the complete data-flow through `_bfd_clear_contents` → `read_reloc` → `bfd_get_8`, and correctly identifies line numbers. No unsupported speculation."
+    "reason": "Accurately identifies the unchecked `(*parent)->address` computation at line 900 in `bfd_generic_get_relocated_section_contents` as root cause, correctly traces the full trigger path through `_bfd_clear_contents` -> `read_reloc` -> `bfd_get_8`, mentions buffer allocation context, and contains no unsupported speculation."
   },
   "vastdb": {
     "correct": true,
     "score": 10,
-    "reason": "Accurately identifies the same root cause (missing bounds check on `(*parent)->address` at line 900 leading to OOB read), traces the identical trigger path through `_bfd_clear_contents` → `read_reloc` → `bfd_get_8`, and correctly references line numbers. No unsupported speculation."
+    "reason": "Accurately identifies the unchecked `(*parent)->address` computation at line 900 as root cause, correctly traces the trigger path through `_bfd_clear_contents` -> `read_reloc` -> `bfd_get_8`, identifies as heap buffer over-read, and contains no unsupported speculation. Concise but complete."
   }
 }

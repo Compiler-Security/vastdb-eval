@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": false,
-    "score": 3,
-    "reason": "Correctly identifies the sink location (line 712) and NULL pointer dereference type, but misidentifies the root cause. Claims the NULL `codec` argument to `avformat_new_stream` is the problem and that it causes codecpar to not be allocated. This is false — passing NULL as codec is standard FFmpeg usage and has nothing to do with the vulnerability. The real root cause is the unchecked return value of `avformat_new_stream`, not its NULL codec argument."
+    "correct": true,
+    "score": 7,
+    "reason": "Correctly identifies the NULL pointer dereference (CWE-476), the absence of avformat_new_stream return-value check, and the trigger path nut_read_header->decode_main_header->decode_stream_header->line 712. Slightly imprecise about 'never implemented' (stub must exist for linking), but the core mechanism and location are correct."
   },
   "vastdb": {
     "correct": true,
     "score": 8,
-    "reason": "Correctly identifies the root cause: the return value of `avformat_new_stream` is not checked, and when it fails (returns NULL), a subsequent NULL dereference occurs at `st->codecpar->codec_tag`. The trigger path is accurate and well-structured. Minor deduction for internal speculation about codecpar allocation failure scenario, which is a plausible implementation detail but not definitively shown."
+    "reason": "Correctly identifies the CWE-476 NULL pointer dereference, provides a thorough trigger path with exact line numbers, notes the missing NULL check on st->codecpar at line 707-708, and accurately describes the external declaration status. More complete and detailed than baseline."
   }
 }

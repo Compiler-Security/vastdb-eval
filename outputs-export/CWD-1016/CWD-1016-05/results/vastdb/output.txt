@@ -1,22 +1,11 @@
-Now I have enough context from reading the source code. Let me trace the data flow manually from what I've read:
+
+
+Now I have all the information needed. Based on the VAST DB analysis and code reading:
 
 ## Root Cause
 
-The vulnerability is an **out-of-bounds write** in the `gaussian_blur` function at line 216: `dst[1] = src[1]`. 
-
-The root cause is:
+The vulnerability is an **out-of-bounds write** in the `gaussian_blur` function at line 216: `dst[1] = src[1]`. The root cause is:
 1. In `config_props` (line 193), `plane->width` is calculated as `AV_CEIL_RSHIFT(inlink->w, hsub)` where `hsub` is the horizontal chroma subsampling factor (typically 1 for YUV420p chroma planes).
 2. For small input widths (e.g., width=1), after the right-shift by `hsub=1`, `plane->width` becomes 0 or 1.
 3. In `filter_frame` (line 287), `gaussian_blur` is called with `width` parameter set to `plane->width`.
-4. In `gaussian_blur`, lines 215-216 unconditionally write to `dst[0]` and `dst[1]` without checking if `width >= 2`. When `width < 2`, accessing `dst[1]` and `src[1]` writes beyond the allocated buffer boundaries.
-
-## Trigger Path
-
-1. `bad.c:180` `config_props`
-   - Sets `plane->width` using `AV_CEIL_RSHIFT(inlink->w, hsub)` based on input link dimensions and chroma subsampling. For chroma planes with hsub=1 and small input width, this produces a small (potentially 0 or 1) width value.
-
-2. `bad.c:250` `filter_frame`
-   - Called by the FFmpeg filter framework. Reads `plane->width` (line 275) and passes it as `width` parameter to `gaussian_blur` (line 287).
-
-3. `bad.c:204` `gaussian_blur`
-   - Receives `width` as parameter (line 204). At lines 215-216, unconditionally writes to `dst[1] = src[1]` without validating that `width >= 2`, causing out-of-bounds write when `width` is 0 or 1.
+4. In `gaussian_blur`, lines 215-216 unconditionally write to `dst[0]` and `dst[1]` without checking if `width

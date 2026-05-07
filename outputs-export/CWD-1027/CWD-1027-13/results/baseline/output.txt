@@ -1,10 +1,16 @@
+
+
 ## Root Cause
 
-The vulnerability is a memory leak (CWE-401) in `glutAddSubMenu` at line 276. Memory is allocated for `menuEntry` via `calloc`, but when `fgState.ActiveMenus` is non-zero (indicating menus are currently in use), the function calls `fgError()` at line 281, which invokes `fgDeinitialize()` and then `exit(1)` at lines 263-266. Since `exit()` terminates the program immediately, the allocated memory for `menuEntry` is never freed, causing a missing release of memory after effective lifetime.
+The vulnerability is a memory leak where `menuEntry` (allocated via `calloc` at line 276) is never freed before program termination. When `fgState.ActiveMenus` is non-zero (indicating menus are in use), line 281 calls `fgError()` which invokes `fgDeinitialize()` and then `exit(1)` at line 266. This terminates the program without freeing the `menuEntry` memory allocated at line 276. The allocated `menuEntry` pointer becomes unreachable immediately after the `fgError()` call, causing a classic missing memory release (CWE-401).
 
 ## Trigger Path
 
 1. `bad.c:270` `glutAddSubMenu`
-   - This is the external entry point for this test case. It allocates `menuEntry` at line 276, then checks `fgState.ActiveMenus` at line 280. If non-zero, control flows to `fgError` which exits the program without freeing the allocated memory.
+   - External/top-level API entry. Receives label and subMenuID from caller. Allocates `menuEntry` at line 276 via `calloc`.
 
-Note: This is a partial source file representing a library function. The actual external/top-level caller (e.g., user application code calling `glutAddSubMenu`) is not present in this test case, so I cannot determine additional stack frames beyond the function itself.
+2. `bad.c:280` condition check
+   - Checks `if (fgState.ActiveMenus)` - if true, control flows to `fgError()` at line 281.
+
+3. `bad.c:281` `fgError("Menu manipulation not allowed while menus in use.");`
+   - Sink location. Triggered when menus are in use. Calls `fgError()` which terminates via `fgDeinitialize()` and `exit(1)` without freeing the allocated `menuEntry`.

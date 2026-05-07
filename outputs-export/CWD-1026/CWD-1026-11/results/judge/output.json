@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": false,
-    "score": 5,
-    "reason": "Correctly identifies UAF in bfd_close_all_done/_bfd_delete_bfd and names archive_close_worker involvement, but describes the UAF as internal to bfd_close_all_done (bfd_cache_delete frees then _bfd_delete_bfd accesses) rather than the actual cross-call trigger: a nested-archive BFD not removed from parent cache before free, causing bfd_cache_close's abfd->iovec read (CVE sink) on the freed pointer when the parent archive later iterates its cache."
+    "score": 3,
+    "reason": "Correctly identifies CWE-416 and the source/sink lines, but the trigger explanation is backwards: it describes bfd_cache_close (sink) called before _bfd_delete_bfd (source), which is the normal safe ordering, not a use-after-free. The speculative 'called again on the same freed pointer' scenario is vague and unsupported. Fails to explain the actual nested-archive cache-unlink mechanism that is the real root cause (evident from the else-if vs unconditional _bfd_unlink_from_archive_parent fix)."
   },
   "vastdb": {
     "correct": false,
     "score": 3,
-    "reason": "Gets the architecture (bfd_close->_bfd_archive_close_and_cleanup path) approximately right, but the described trigger is confused — claims the freed pointer from _bfd_delete_bfd in bfd_close_all_done is the same as the abfd in the parent's bfd_close->iovec->bclose(abfd), which conflates the child BFD pointer with the parent archive pointer. Misses the parent archive cache issue entirely."
+    "reason": "Correctly identifies CWE-416 and traces source/sink lines, but the root cause description is confused: states 'accessed while still valid but in a stale state' and 'accessed immediately before being freed' — neither correctly describes use-after-free (access after free). The trigger path shows the normal safe call order (bfd_cache_close before _bfd_delete_bfd) and fails to identify the nested-archive cache-unlink issue where the else-if skips unlinking. Does not explain the actual double-close or dangling-cache-entry mechanism."
   }
 }

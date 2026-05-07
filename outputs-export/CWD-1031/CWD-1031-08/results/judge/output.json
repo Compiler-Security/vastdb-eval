@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies the NULL pointer dereference of `cl` (from `obj_class`) in `class_object_index`, correctly notes the missing NULL check for `obj_class` after checking `v_object`, and provides the accurate trigger path `eval9` → `handle_subscript` → `class_object_index`. No unsupported speculation."
+    "score": 9,
+    "reason": "Accurately identifies the NULL dereference in class_object_index at line 511 (missing obj_class check), the sink at cl->class_class_function_count, and the call chain eval9→handle_subscript→class_object_index. Correctly notes obj_class can be NULL for incomplete objects. Minor speculation about construction bugs is reasonable."
   },
   "vastdb": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies the NULL pointer dereference of `cl` (from `obj_class`) in `class_object_index`, the missing NULL check for `obj_class`, and the trigger path `eval9` → `handle_subscript` → `class_object_index`. Matches the actual fix (adding `if (cl == NULL)` check in good.c:515-519). No unsupported speculation."
+    "score": 9,
+    "reason": "Correctly identifies the root cause (no NULL check on obj_class), the vulnerable location (line 511), the dereference at cl->class_class_function_count/class_obj_method_count, and the trigger path eval9→handle_subscript→class_object_index. Accurate and concise with no unsupported speculation."
   }
 }

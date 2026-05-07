@@ -1,20 +1,7 @@
+
+
+Based on my analysis, I now have enough information to explain the vulnerability.
+
 ## Root Cause
 
-The vulnerability is an out-of-bounds write in the EXR image decoder. The `ymin` value is read from the `dataWindow` attribute in the file (line 646) and stored in `s->ymin`. Later, in `decode_frame`, the code loops `s->ymin` times to zero out lines before the actual image data (lines 947-952). However, the buffer is allocated based on `displayWindow` dimensions (via `ff_set_dimensions` at line 894 and `ff_thread_get_buffer` at line 917), not `dataWindow`. When `dataWindow.ymin` exceeds `displayWindow.height`, the loop writes past the end of the allocated buffer, causing CWE-787 out-of-bounds write.
-
-## Trigger Path
-
-1. `bad.c:426` `decode_header`
-   - Parses the EXR header and reads `dataWindow` coordinates (xmin, ymin, xmax, ymax) from the bytestream at lines 645-648. Stores ymin in `s->ymin` at line 658.
-
-2. `bad.c:804` `decode_frame`
-   - Entry point that receives the compressed EXR frame. Calls `decode_header` at line 822 to parse header data including s->ymin.
-
-3. `bad.c:894` `ff_set_dimensions`
-   - Sets output dimensions to `s->w` and `s->h` (from `displayWindow`), NOT the dataWindow dimensions. This determines the allocated buffer size.
-
-4. `bad.c:917` `ff_thread_get_buffer`
-   - Allocates the output picture buffer based on dimensions set by ff_set_dimensions (displayWindow size).
-
-5. `bad.c:947-952` memset loop
-   - Iterates `s->ymin` times (from dataWindow) and writes `out_line_size` bytes per line to the buffer (which is sized for displayWindow). When `s->ymin > s->h`, this writes past the buffer end.
+The vulnerability is an out-of-bounds write in the EXR image decoder. The `ymin` value is parsed from the bytestream at lines 645-646 using `bytestream2_get_le32(&s->gb)` without proper validation. This value is stored in `s->ymin` and later used at line 950 as the loop bound `for (y = 0; y

@@ -1,15 +1,18 @@
+
+
 ## Root Cause
 
-The vulnerability stems from a **size mismatch** in the `AcquireBilateralTLS` function at line 946. The function allocates an array of `number_threads+1` pointers (line 943), but the subsequent `memset` only zeros out `number_threads` elements (line 946). This leaves `weights[number_threads]` uninitialized with garbage memory. Later, when `DestroyBilateralTLS` iterates from 0 to `number_threads` (inclusive, line 927), it attempts to call `RelinquishMagickMemory` on the uninitialized `weights[number_threads]` pointer (line 929), releasing an invalid pointer/reference—triggering CWE-763.
+The vulnerability is a **heap buffer under-read** due to incorrect array size calculation when zeroing memory. The `weights` array is allocated with `number_threads+1` elements at line 943, but `memset` at line 946 only zeroes `number_threads` elements (`number_threads*sizeof(*weights)` bytes instead of `(number_threads+1)*sizeof(*weights)`). This leaves `weights[number_threads]` (the last slot) containing uninitialized garbage values. When `DestroyBilateralTLS` is later called (at line 929), it attempts to free `weights[number_threads]` using `RelinquishMagickMemory`, passing an invalid/uninitialized pointer, leading to **CWE-763: Release of Invalid Pointer or Reference**.
 
 ## Trigger Path
 
 1. `bad.cpp:956` `BilateralBlurImage`
-   - Top-level function that calls `AcquireBilateralTLS` and later `DestroyBilateralTLS`
+   - Entry point: allocates `weights` via `AcquireBilateralTLS` and later frees via `DestroyBilateralTLS`
 
 2. `bad.cpp:1006` `AcquireBilateralTLS`
-   - Allocates `number_threads+1` pointers but only zeros `number_threads`, leaving `weights[number_threads]` uninitialized (line 946)
+   - Allocates `weights` array with `number_threads+1` elements; calculates thread count from `GetMagickResourceLimit(ThreadResource)`
 
-3. `bad.cpp:1199` `DestroyBilateralTLS` (called from `BilateralBlurImage`)
-   - Iterates `i` from 0 to `number_threads` inclusive (line 927)
-   - Attempts to free `weights[number_threads]` which contains garbage/uninitialized memory (line 929)
+3. `bad.cpp:946` `(void) memset(weights,0,number_threads*sizeof(*weights))`
+   - **Source bug**: only zeroes `number_threads` elements, missing the last slot
+
+4. `bad.cpp:947-952` `for (i=0

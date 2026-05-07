@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies CWE-401 memory leak in DlgCreate8: buf allocated via vsmprintf at line 353, never freed before return(NULL) at line 357 when screen_display==NULL. Correctly contrasts with the normal path (lines 359-360) where buf is freed, and identifies the fix. No unsupported speculation."
+    "score": 9,
+    "reason": "Accurately identifies the CWE-401 memory leak: buf allocated by vsmprintf (line 353) is not freed before the early return(NULL) at line 357 when screen_display==NULL. The trigger path and root cause are precisely described. Minor imprecision in phrasing 'memory becomes unsafe' but does not affect correctness."
   },
   "vastdb": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies CWE-401 memory leak in DlgCreate8 at the same location. Correctly pinpoints the allocation (line 353), the missing free(buf) before return(NULL) at line 357, and references the exact fix in good.c:357. No unsupported speculation."
+    "score": 9,
+    "reason": "Accurately identifies the same root cause and trigger path with additional detail about vsmprintf's internal malloc and the normal free path at line 360. The speculation about the function being static and called from external code is reasonable and marked appropriately. Slightly more thorough than baseline but equally correct."
   }
 }

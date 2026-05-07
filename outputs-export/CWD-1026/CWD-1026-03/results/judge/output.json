@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": false,
-    "score": 3,
-    "reason": "Identifies UAF and the right function, but gets the trigger mechanism completely wrong: claims the local variable `node` is stale after realloc, when in fact `node` is reassigned each iteration. The actual dangling pointer is `node->v` (a field within SaveNode) pointing to the embedded `&node->sorted` that was invalidated by realloc."
+    "correct": true,
+    "score": 8,
+    "reason": "Correctly identifies the UAF root cause (stack reallocation via tr_renew invalidates pointers into old stack) and the source/sink lines. Slightly imprecise about the dangling pointer mechanism (attributes staleness to `node` local variable rather than `node->v` field containing a within-struct address), but the overall trigger path is accurate."
   },
   "vastdb": {
     "correct": true,
-    "score": 7,
-    "reason": "Correctly identifies that SaveNode contents (including `node->v`) are copied by value via realloc and `node->v` still points to old freed memory. Captures the core data-flow mechanism. However, doesn't explicitly call out the self-referential `node->v = &node->sorted` assignment as the root cause, and includes a slightly confused statement about local `node` variable and stackSize."
+    "score": 8,
+    "reason": "Correctly identifies the UAF root cause, CWE-416 classification, and the trigger path with source/sink locations. Same minor imprecision as baseline in describing the dangling pointer (says `node` references old stack when the real bug is `node->v` retaining the old in-struct address after realloc copy). No unsupported speculation."
   }
 }

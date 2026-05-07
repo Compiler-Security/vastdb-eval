@@ -2,11 +2,11 @@
   "baseline": {
     "correct": false,
     "score": 2,
-    "reason": "Blames the `==` vs `>=` nesting check, but this check is identical in bad/good. The actual fix is the missing `sublen <= 0` guard in `do_string_sub`. Claims `nested` exceeds array bounds, which doesn't occur since nesting==4 is caught. Correct on CWE, function, and crash site."
+    "reason": "Incorrectly claims eval_result[4] is accessed via index confusion (nested vs nesting), but nested=3, eval_result[3] is valid. The actual OOB is from unbounded STRCPY into a zero-length dest when sublen<=0 is unchecked in do_string_sub."
   },
   "vastdb": {
     "correct": false,
     "score": 2,
-    "reason": "Same incorrect root cause as baseline: focuses on `==` vs `>=` nesting check. The actual fix is the `sublen <= 0` guard in `do_string_sub`. Claims `nested` exceeds `MAX_REGSUB_NESTING`, which does not happen. Correct on CWE, function, and crash site."
+    "reason": "Incorrectly claims a 'timing mismatch' where the copy path accesses stale pointers because nested is captured before nesting is incremented. Both paths use the same nested value so no mismatch exists. Misses the true root cause: unchecked vim_regsub return value in do_string_sub."
   }
 }

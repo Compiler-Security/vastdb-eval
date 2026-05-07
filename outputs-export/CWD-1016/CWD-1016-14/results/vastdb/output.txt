@@ -1,37 +1,21 @@
-Now I have all the information I need. Let me verify my understanding by looking at the code one more time to confirm the data types.
 
-Template: Location to Operations
-Adaptation: Used to locate operations at specific lines (218, 238, 241, 284, 249) in bad.c
 
-Template: Enclosing Function  
-Adaptation: Used to trace function hierarchy from each call
-
-Template: One-step Use to Def
-Adaptation: Traced the max_len parameter from the vulnerable call at line 218 back to its definition at line 205
-
-Template: Def to Assign
-Adaptation: Traced how variable `i` at line 231 gets its value from the assignment at line 238
+Now I have all needed evidence to explain the vulnerability:
 
 ## Root Cause
 
-The vulnerability is a CWE-787 Out-of-bounds Write in `evp_cipher_get_asn1_aead_params`. The function makes two sequential calls to `ossl_asn1_type_get_octetstring_int`: first with `data=NULL` to retrieve the ASN1 data length, then using that returned length as the `max_len` parameter for the second call. The problem is the second call's `data` buffer (`iv`) is sized at `EVP_MAX_IV_LENGTH` (typically 16 bytes for AES), but the length returned from the first call can exceed this buffer size. This causes the `memcpy` in `asn1_type_get_int_oct` (line 199) to write beyond the buffer boundaries.
+The vulnerability is an **out-of-bounds write** in the `asn1_type_get_int_oct` function at line 218 in `bad.c`. The function copies data from ASN1-encoded octet strings into fixed-size buffers (`iv` array of size `EVP_MAX_IV_LENGTH` = 16). At line 241, the `max_len` parameter is set to `i`, which is the **actual decoded length from the ASN1 data**, not bounded by the buffer size. When the ASN1-encoded data length exceeds 16 bytes, the `memcpy` at line 199 writes beyond the 16-byte `iv` buffer, causing a heap out-of-bounds write.
 
 ## Trigger Path
 
 1. `bad.c:249` `evp_cipher_asn1_to_param_ex`
-   - Entry point that processes cipher parameters from ASN1 type; calls `evp_cipher_get_asn1_aead_params` at line 284
+   - Entry point function handling cipher parameter extraction. At line 284, dispatches to `evp_cipher_get_asn1_aead_params` for GCM mode.
 
-2. `bad.c:284` `evp_cipher_get_asn1_aead_params` (callsite)
-   - Passes `asn1_params` structure containing the fixed-size `iv` buffer (EVP_MAX_IV_LENGTH bytes)
+2. `bad.c:228` `evp_cipher_get_asn1_aead_params`
+   - Extracts AEAD parameters from ASN1_TYPE. At line 238, first calls `ossl_asn1_type_get_octetstring_int` with `EVP_MAX_IV_LENGTH` (16) to get the encoded length. At line 241, calls the same function again using the **unescaped length** (`i`) as max_len.
 
-3. `bad.c:238` `evp_cipher_get_asn1_aead_params` (first call to `ossl_asn1_type_get_octetstring_int`)
-   - Calls with `data=NULL, max_len=EVP_MAX_IV_LENGTH` - returns actual ASN1 data length into variable `i`
+3. `bad.c:204` `ossl_asn1_type_get_octetstring_int`
+   - Wrapper function that unpacks ASN1 sequence and calls `asn1_type_get_int_oct`. At line 218, passes untrusted length value directly as `max_len`.
 
-4. `bad.c:241` `evp_cipher_get_asn1_aead_params` (second call to `ossl_asn1_type_get_octetstring_int`)
-   - Calls with `data=iv (16 bytes), max_len=i` - `i` can be > EVP_MAX_IV_LENGTH, causing overflow
-
-5. `bad.c:218` `ossl_asn1_type_get_octetstring_int` (calls `asn1_type_get_int_oct`)
-   - Passes through the unbounded `max_len` parameter to the vulnerable function
-
-6. `bad.c:185` `asn1_type_get_int_oct`
-   - The function calculates `n = (max_len > ret) ? ret : max_len` and performs `memcpy(data, ..., n)` - when `max_len > EVP_MAX_IV_LENGTH` and `ret > EVP_MAX_IV_LENGTH`, `n` exceeds the buffer size causing out-of-bounds write
+4. `bad.c:185` `asn1_type_get_int_oct` (static helper)
+   - Performs the vulnerable copy. At lines 193-196, computes `n = (max_len > ret) ? ret : max_len` where `ret` is the actual ASN1 string length and `max_len` is the unescaped value from caller. At line 199, `memcpy(data, ..., n)` writes `n` bytes into a buffer sized only for `EVP_MAX_IV_LENGTH` (16). When `n` > 16, out-of-bounds write occurs.

@@ -1,20 +1,22 @@
+
+
 ## Root Cause
 
-The vulnerability is a **Use-After-Free (CWE-416)**. In `WriteMSLImage` (line 1231-1233), the cloned image `msl_image` is passed by address (`&msl_image`) to `ProcessMSLScript`. Inside `ProcessMSLScript` at line 1284, if the passed image is non-NULL, it stores the image pointer into the `msl_info.image` array via `MSLPushImage`. Later at line 1325, `DestroyMSLInfo(&msl_info)` is called which destroys **all** images stored in `msl_info.image`, including the original `*image` passed from the caller. This frees the memory of the original `msl_image`. Upon return to `WriteMSLImage`, the code at line 1233 calls `DestroyImage(msl_image)` on the already-freed object, triggering the use-after-free.
+The vulnerability is a Use After Free in the MSL coder. In `WriteMSLImage` (line 1231), `msl_image` is a cloned Image pointer passed to `ProcessMSLScript` at line 1232. Inside `ProcessMSLScript`, at line 1284, the original `*image` pointer (referencing `msl_image` from the caller) is stored into `msl_info.image` via `MSLPushImage`. Later, at line 1325, `DestroyMSLInfo(&msl_info)` is called, which destroys all images in the `msl_info.image` array (line 1362), including the one that was cloned from the original `msl_image`. After `ProcessMSLScript` returns, the caller still holds `msl_image` at line 1233, but it now points to freed memory because `DestroyImageList` was called on it, causing a Use After Free when `DestroyImage(msl_image)` is called.
 
 ## Trigger Path
 
-1. `bad.cpp:1220` `WriteMSLImage`
-   - Calls `CloneImage` to create `msl_image`, then passes its address (`&msl_image`) to `ProcessMSLScript`
+1. `bad.cpp:1231` `WriteMSLImage`
+   - `msl_image` is assigned a cloned Image from the input parameter.
 
-2. `bad.cpp:1238` `ProcessMSLScript`
-   - Receives `Image **image` pointing to caller's `msl_image`. At line 1284, if `*image != NULL`, calls `MSLPushImage` storing the caller's image pointer into internal array. At line 1325, calls `DestroyMSLInfo` which frees all stored images including the caller's `*image`
+2. `bad.cpp:1232` `ProcessMSLScript`
+   - Passes `&msl_image` to the function, where it becomes the `Image **image` parameter.
 
-3. `bad.cpp:1331` `MSLPushImage`
-   - Stores the passed image pointer into `msl_info->image[n]` array for later cleanup
+3. `bad.cpp:1284` `ProcessMSLScript` -> `MSLPushImage`
+   - The original `*image` pointer is pushed into `msl_info.image`, making it subject to later destruction.
 
-4. `bad.cpp:1358` `DestroyMSLInfo`
-   - Iterates through `msl_info->image` array and calls `DestroyImage` on each entry (line 1362), freeing the memory of the caller's image
+4. `bad.cpp:1325` `ProcessMSLScript` -> `DestroyMSLInfo`
+   - Calls `DestroyImage` on images stored in `msl_info.image`, including the original pointer.
 
-5. `bad.cpp:1233` (in `WriteMSLImage`, the sink)
-   - After `ProcessMSLScript` returns, calls `DestroyImage(msl_image)` on the already-freed memory, triggering the use-after-free
+5. `bad.cpp:1233` `WriteMSLImage`
+   - Attempts to call `DestroyImage(msl_image)` on the freed pointer, triggering the Use After Free.

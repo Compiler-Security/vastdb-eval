@@ -2,11 +2,11 @@
   "baseline": {
     "correct": false,
     "score": 2,
-    "reason": "Incorrectly identifies root cause as dereferencing `table->files` when the actual fix adds `table == NULL` check. The real issue is `table` (the `unit->line_table` pointer) itself being NULL, not `table->files` being NULL while `num_files` is non-zero. The speculative scenario about file pointer vs num_files mismatch does not match the actual CVE fix."
+    "reason": "Fundamentally incorrect: claims `table->files[file-1]` at line 1457 is the crash when `file=1,num_files=0` (0>=0 true). But when true, the code enters the if-block and returns at line 1454, never reaching line 1457. The actual crash is `table->num_files` at line 1448 when `table` is NULL. Misidentifies both the root cause and trigger path."
   },
   "vastdb": {
     "correct": true,
-    "score": 8,
-    "reason": "Correctly identifies the root cause: `bfd_zalloc` zeroes `comp_unit` including `line_table` (NULL), and `concat_filename` at line 1448 dereferences `table->num_files` on a NULL `table`. Correctly captures source allocation, sink location, and CWE-476. Minor imprecision in trigger path (scan_unit_for_symbols is guarded by decode_line_info success; actual trigger likely requires cross-CU reference switching in find_abstract_instance) but overall analysis is accurate."
+    "score": 7,
+    "reason": "Correctly identifies that `concat_filename` does not NULL-check `table` before dereferencing `table->num_files` at line 1448. The trigger path description is slightly imprecise (several caller steps are speculative about the exact path), but the core root cause and sink location are accurate."
   }
 }

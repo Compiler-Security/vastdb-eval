@@ -1,17 +1,19 @@
+
+
 ## Root Cause
 
-The vulnerability is a classic CWE-787 out-of-bounds write in the `asn1_type_get_int_oct` function at line 218. The function returns the *full* length of the ASN1_OCTET_STRING (`ret` = `ASN1_STRING_length(oct)`), but the actual copied amount is limited by `max_len`. When the caller uses the returned length as `max_len` in a subsequent call (lines 238-241), if the octet string is larger than the provided buffer (EVP_MAX_IV_LENGTH = 16), the second call passes a `max_len` value larger than the destination buffer size (`iv[16]`), causing `memcpy` at line 199 to write beyond the buffer bounds.
+The vulnerability is an out-of-bounds write in the `asn1_type_get_int_oct` function at line 199 when it performs `memcpy(data, ASN1_STRING_get0_data(oct), n)`. The function calculates `n` as the minimum of either the actual ASN1_OCTET_STRING length (`ret`) or the provided `max_len`. However, the caller `evp_cipher_get_asn1_aead_params` passes `i` (the actual octet string length from a prior call) as `max_len` without ensuring it fits in the destination buffer `iv` (which is only `EVP_MAX_IV_LENGTH` = 16 bytes). When the ASN1_OCTET_STRING data exceeds 16 bytes, `n` equals that larger size, causing memcpy to write beyond the 16-byte `iv` buffer—triggering CWE-787.
 
 ## Trigger Path
 
-1. `bad.c:249` `evp_cipher_asn1_to_param_ex`
-   - Entry point; calls `evp_cipher_get_asn1_aead_params` at line 284 for GCM mode ciphers.
+1. `evp_cipher_get_asn1_aead_params:238` `evp_cipher_get_asn1_aead_params`
+   - Calls `ossl_asn1_type_get_octetstring_int` with `data=NULL` and `max_len=EVP_MAX_IV_LENGTH` (16) to determine the actual octet string length `i`.
 
-2. `bad.c:228` `evp_cipher_get_asn1_aead_params`
-   - Calls `ossl_asn1_type_get_octetstring_int` twice: first with `NULL` data to get length (line 238), then with the returned length as `max_len` (line 241).
+2. `evp_cipher_get_asn1_aead_params:241` `evp_cipher_get_asn1_aead_params`
+   - Calls `ossl_asn1_type_get_octetstring_int` again with `data=iv` (16-byte buffer) and `max_len=i` (unchecked length from step 1), now using `i` directly as the bounds limit.
 
-3. `bad.c:204` `ossl_asn1_type_get_octetstring_int`
-   - Unpacks ASN1 sequence into `asn1_oct_int` structure; calls `asn1_type_get_int_oct` at line 218 with `max_len` parameter.
+3. `ossl_asn1_type_get_octetstring_int:218` `ossl_asn1_type_get_octetstring_int`
+   - Passes the caller's `max_len` parameter directly to `asn1_type_get_int_oct` without validation against the caller's buffer size.
 
-4. `bad.c:185` `asn1_type_get_int_oct`
-   - Returns `ret` (full octet string length), but only copies `min(max_len, ret)` bytes. The mismatch between returned length and copied length enables the buffer overflow.
+4. `asn1_type_get_int_oct:193-199` `asn1_type_get_int_oct`
+   - Computes `n = max_len` (the caller's value) when

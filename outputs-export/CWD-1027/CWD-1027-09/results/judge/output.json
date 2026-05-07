@@ -2,11 +2,11 @@
   "baseline": {
     "correct": true,
     "score": 10,
-    "reason": "Accurately identifies the CWE-401 memory leak in nut_write_trailer: avio_open_dyn_buf allocates dyn_bc unconditionally, but the buffer is only freed via put_packet/avio_close_dyn_buf when ret>=0 && nut->sp_count. When nut->sp_count==0, control falls through to return 0 without freeing. No unsupported speculation."
+    "reason": "Correctly identifies the memory leak (CWE-401) at bad.c:342-349: avio_open_dyn_buf allocates a DynBuffer+AVIOContext, but the cleanup via put_packet/avio_close_dyn_buf is guarded by nut->sp_count, so when sp_count==0 the memory is never freed. Trigger path (line references, conditional bypass) is accurate and concise, with no unsupported speculation."
   },
   "vastdb": {
     "correct": true,
     "score": 10,
-    "reason": "Accurately identifies the same CWE-401 memory leak with identical root cause and trigger path. Correctly notes avio_open_dyn_buf allocates via url_open_dyn_buf_internal→av_mallocz, and the conditional at line 343 bypasses cleanup when nut->sp_count==0. No unsupported speculation."
+    "reason": "Identical root-cause analysis: avio_open_dyn_buf leaks when nut->sp_count==0 because the conditional at line 343 prevents put_packet (which calls avio_close_dyn_buf) from executing. Trigger path correctly traces from allocation to early return without cleanup. Accurate CWE-401 classification, no unsupported claims."
   }
 }

@@ -2,11 +2,11 @@
   "baseline": {
     "correct": false,
     "score": 1,
-    "reason": "Misidentifies root cause: claims linesize/width mismatch causes OOB, but the actual fix (good.c) adds height guards `if (h > 1)`, `if (h > 2)`, `if (h > 3)` around the edge-row memcpy calls. The vulnerability is unconditional memcpy for 4 edge rows when h < 4, not linesize vs width mismatch."
+    "reason": "Falsely attributes root cause to a linesize>width mismatch causing OOB read/walk. The actual vulnerability is unconditional memcpy of top 2 and bottom 2 rows without height validation (h<4 leads to OOBW). Only correct about the vulnerable function and general file location."
   },
   "vastdb": {
-    "correct": true,
-    "score": 9,
-    "reason": "Correctly identifies root cause: 4 unconditional memcpy(dst, src, w) calls at lines 460-461 and 491-492 write past buffer when h < 4. Correctly traces trigger path from plane->height through gaussian_blur parameters to the unbounded memcpy operations. The fix (good.c) confirms this by adding height checks to guard each edge-row memcpy."
+    "correct": false,
+    "score": 1,
+    "reason": "Falsely attributes root cause to w exceeding buffer linesize (impossible since dst_linesize is passed as width=w). The actual fix adds if(h>1), if(h>2), if(h>3) guards around unconditional memcpy calls for top2/bottom2 rows. Correct about function location but wrong mechanism."
   }
 }

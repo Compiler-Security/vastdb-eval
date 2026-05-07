@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": false,
-    "score": 4,
-    "reason": "Correctly identifies CWE-476 and the sink (det_ctx->p->flow at line 1322), but incorrectly attributes the source (det_ctx->p=NULL at line 2699) to DetectRulePacketRules instead of DetectRunTx. The trigger path is vague and confused about whether the dereference occurs in a loop iteration or across packets, missing the precise inter-packet timing between packet-level inspection (line 2783) and transaction-level inspection (line 2830)."
+    "correct": true,
+    "score": 10,
+    "reason": "Correctly identifies the NULL pointer dereference of det_ctx->p->flow in DetectEntropyDoMatch (line 1322), the source at line 2699 where det_ctx->p is set to NULL, and the trigger call chain. Matches the fix which adds a Flow* parameter and a NULL check."
   },
   "vastdb": {
     "correct": true,
-    "score": 9,
-    "reason": "Accurately identifies CWE-476 null pointer dereference, correctly locates both the source (det_ctx->p=NULL in DetectRunTx at line 2699) and sink (det_ctx->p->flow in DetectEntropyDoMatch at line 1322), and correctly traces the inter-packet trigger path where packet-level inspection (DetectRulePacketRules at line 2783) runs before DetectRunTx re-assigns det_ctx->p (line 2398), leaving it NULL from the previous packet. The fix adds a Flow* parameter with NULL check and no longer dereferences det_ctx->p."
+    "score": 10,
+    "reason": "Correctly identifies the NULL pointer dereference, the NULL assignment at line 2699, and the full trigger call chain. Matches the fix and has no unsupported speculation."
   }
 }

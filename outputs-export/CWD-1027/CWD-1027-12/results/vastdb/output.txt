@@ -1,21 +1,10 @@
-Now I have sufficient evidence from both code analysis and VAST DB. Let me provide the final analysis:
+
 
 ## Root Cause
 
-The vulnerability is a **CWE-401 Missing Release of Memory after Effective Lifetime**. In the `glutAddMenuEntry` function (bad.c:269-286), memory is allocated via `calloc` at line 273 for `SFG_MenuEntry *menuEntry`. When the condition at line 276 evaluates to true (i.e., `fgState.ActiveMenus` is non-zero), `fgError` is called at line 277. The `fgError` function (bad.c:236-267) unconditionally calls `exit(1)` at line 265, terminating the program without freeing the previously allocated `menuEntry`. Since `exit()` bypasses normal cleanup and there's no cleanup handler for this specific allocation, the memory is never released before program termination.
+The vulnerability is a **missing release of memory** (CWE-401). In `glutAddMenuEntry`, a `menuEntry` structure is allocated via `calloc()` at line 273. Immediately after allocation (line 276), the code checks if `fgState.ActiveMenus` is truthy. If so, it calls `fgError()` which may terminate the program. When termination occurs, the allocated memory at line 273 is never freed because the code lines that would use or free it (lines 279-283) are skipped. Thus the memory becomes unreachable/leaked after the effective lifetime ends.
 
 ## Trigger Path
 
-1. `bad.c:269` `glutAddMenuEntry(const char *label, int value)`
-   - External caller invokes this function with a menu label and value.
-   - Line 273 allocates `SFG_MenuEntry` via `calloc` before any checks.
-
-2. `bad.c:276` (if condition)
-   - Checks `if (fgState.ActiveMenus)` - if true, control flows to error path.
-
-3. `bad.c:277` `fgError("Menu manipulation not allowed while menus in use.")`
-   - Called when menus are in use; this is the sink location.
-
-4. `bad.c:265` `exit(1)` (inside `fgError`)
-   - Called from `fgError` function (bad.c:236), unconditionally terminates program.
-   - The allocated `menuEntry` at line 273 is never freed.
+1. `bad.c:269` `glutAddMenuEntry`
+   - Allocates `menuEntry` via `calloc()` at line 273, then checks `fgState.ActiveMenus` at line 276 which triggers `fgError()` at line 277 if active menus exist, causing early exit that bypasses cleanup code.

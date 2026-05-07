@@ -1,19 +1,24 @@
-Looking at the code more carefully to understand the exact flow:
+
+
+Based on my analysis of the code, I can now provide the vulnerability explanation.
 
 ## Root Cause
 
-The vulnerability is in `gf_filter_pid_merge_properties_internal` (line 856). When this function calls `check_new_pid_props(dst_pid, GF_FALSE)` at line 869, it creates a new `GF_PropertyMap` via `gf_props_new` (line 799), which allocates memory using `GF_SAFEALLOC(map, GF_PropertyMap)` at line 842. The newly created map is added to `dst_pid->properties` at line 803. However, if `src_props` is NULL (lines 887-894), the function returns `GF_OK` at line 893 without merging any properties and without freeing the newly allocated map. The map remains orphaned in `dst_pid->properties` with `reference_count=1`, causing a memory leak.
+A `GF_PropertyMap` is allocated in `check_new_pid_props()` (line 799) via `gf_props_new()`, which calls `GF_SAFEALLOC(map, GF_PropertyMap)` at line 842. This allocates memory for the property map and sets `reference_count = 1` at line 852. The allocated map becomes `dst_props` in `gf_filter_pid_merge_properties_internal()`. At line 907, `gf_props_merge_property(dst_props, src_props, ...)` is called, which returns `GF_OK` at line 952. However, after successful merge, the newly allocated `dst_props` is never freed—the reference count is never decremented, and `gf_props_del()` is never called. The memory leak occurs because the caller returns success without releasing the allocated map.
 
 ## Trigger Path
 
 1. `bad.c:856` `gf_filter_pid_merge_properties_internal`
-   - Entry function. Calls `check_new_pid_props` to get/create destination properties map at line 869.
+   - Calls `check_new_pid_props()` at line 869 to get/create `dst_props`
 
-2. `bad.c:785` `check_new_pid_props`
-   - Calls `gf_props_new` at line 799 to create a new `GF_PropertyMap`. The allocation happens via `GF_SAFEALLOC` at line 842. Adds the map to `pid->properties` at line 803. Returns the map at line 832.
+2. `bad.c:799` `check_new_pid_props`
+   - Calls `gf_props_new()` to allocate a new `GF_PropertyMap` when no old map exists
 
 3. `bad.c:835` `gf_props_new`
-   - Called by `check_new_pid_props`. At line 842, `GF_SAFEALLOC(map, GF_PropertyMap)` allocates memory for the new property map. This is the source of the leak - memory is allocated but never freed in the error path.
+   - Uses `GF_SAFEALLOC` at line 842 to allocate `GF_PropertyMap`, sets `reference_count = 1` at line 852, returns the map
 
-4. `bad.c:893` `return GF_OK;`
-   - This is the sink. When `src_props` is NULL (no properties to copy from), the function returns `GF_OK` at line 893 without freeing the newly created `dst_props` map that was added to `pid->properties`.
+4. `bad.c:907` `gf_filter_pid_merge_properties_internal`
+   - Calls `gf_props_merge_property(dst_props, src_props, ...)` to merge properties into the newly allocated map
+
+5. `bad.c:952` `gf_props_merge_property`
+   - Returns `GF_OK` without freeing `dst_props`, causing the memory leak. The allocated map is added to the properties list at `bad.c:803`, but after merge completes, there is no corresponding release—the `reference_count` remains at 1 and `gf_props_del()` is never invoked.

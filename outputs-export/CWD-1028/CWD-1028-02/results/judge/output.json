@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": true,
-    "score": 8,
-    "reason": "Correctly identifies insufficient bounds validation on untrusted dc_count (CWE-129) and the out-of-bounds read at dc[idx] in line 1188. Slightly imprecise about the bound check—the issue is a loose upper bound allowing mismatched dc_count values, not that exceeding the bound causes the OOB read (since the bound check would reject that case). But the overall root-cause characterization is sound."
+    "correct": false,
+    "score": 6,
+    "reason": "Correctly identifies the source (dc_count from AV_RL64) and sink (av_fast_padded_malloc) in dwa_uncompress, and notes the validation at line 1138 is weak. However, it incorrectly frames the check 'occurring AFTER the calculation of dest_len' as a causal issue, the check placement is not the flaw. Its focus on integer overflow in (6LL*xsize*ysize+63)/64 as the bypass mechanism misses the primary issue: the check uses > (upper bound) with a wrong formula, allowing smaller-than-expected dc_count values to pass, leading to undersized buffer allocation and OOB read at line 1188. Also does not mention the downstream array access at dc[idx]."
   },
   "vastdb": {
-    "correct": false,
-    "score": 2,
-    "reason": "Incorrectly claims integer overflow in 'td->xsize * td->ysize' during the validation check. In '6LL * td->xsize * td->ysize', the 6LL literal promotes the entire expression to int64_t, so no int overflow occurs. Also incorrectly claims heap buffer overflow during decompression at lines 1145-1150; the real issue is CWE-129 out-of-bounds array read at line 1188 due to improper index validation."
+    "correct": true,
+    "score": 8,
+    "reason": "Correctly identifies source (dc_count), sink (av_fast_padded_malloc), and the weak validation in dwa_uncompress. More precisely connects the trigger path to the actual OOB array access at line 1188 (dc[idx]), describing the idx computation formula from dc_w/dc_h. Mentions integer overflow as a potential bypass mechanism, which while possible, is secondary to the core flaw (wrong formula, > vs !=). Misses the exact semantic issue but covers the essential data flow from untrusted dc_count through buffer allocation to out-of-bounds index access."
   }
 }

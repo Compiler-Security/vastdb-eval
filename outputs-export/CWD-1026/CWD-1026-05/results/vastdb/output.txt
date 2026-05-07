@@ -1,19 +1,25 @@
-Now I have enough information to provide the analysis.
+
+
+
+Now I have all the information to document the vulnerability.
 
 ## Root Cause
 
-The vulnerability is a Use-After-Free (CWE-416) in the `ImagesToBlob` function. The `blob` pointer is first freed by `UnmapBlob` inside `DetachBlob` at line 629 (when the blob is mapped), which returns the now-freed pointer. Then at line 759, `RelinquishMagickMemory(blob)` is called on the same pointer, causing a double-free/use-after-free. The vulnerability occurs because `DetachBlob` frees the memory internally via `UnmapBlob` but still returns the original pointer, which is then incorrectly freed again by the caller.
+The vulnerability is a CWE-416 Use-After-Free. In `DetachBlob()` (bad.cpp:619), the `blob_info->data` is unmapped at line 629 via `UnmapBlob()`, which frees the mapped memory. The function then saves this now-freed pointer to a local variable `data` at line 640 and returns it (line 644). Back in the caller `ImagesToBlob()`, when it calls `RelinquishMagickMemory(blob)` at line 759, it frees the already-freed pointer returned by `DetachBlob`. Any subsequent use of `blob` after line 759 constitutes a use-after-free.
 
 ## Trigger Path
 
 1. `bad.cpp:692` `ImagesToBlob`
-   - Entry function that processes images into blob format. Calls `DetachBlob` at line 755 to extract blob data.
+   - Entry point function that processes image to blob format
 
-2. `bad.cpp:755` (via call) `DetachBlob`
-   - Calls `DetachBlob(images->blob)` to detach the blob. This is an external/lib call to the function at line 619.
+2. `bad.cpp:755` `DetachBlob(images->blob)`
+   - Calls DetachBlob to detach the blob from images structure
 
-3. `bad.cpp:629` `DetachBlob` (UnmapBlob call)
-   - Inside `DetachBlob`, when the blob is memory-mapped (`blob_info->mapped != MagickFalse`), `UnmapBlob(blob_info->data, blob_info->length)` frees the underlying memory. The function then returns this now-freed pointer to the caller.
+3. `bad.cpp:619` `DetachBlob(BlobInfo *blob_info)`
+   - At line 629: `(void) UnmapBlob(blob_info->data,blob_info->length);` - unmaps/frees `blob_info->data`
+   - At line 640-644: saves pointer to `data`, returns it to caller
 
-4. `bad.cpp:759` `ImagesToBlob` (RelinquishMagickMemory call)
-   - After `DetachBlob` returns the freed pointer, the code at line 759 calls `blob=RelinquishMagickMemory(blob)`, attempting to free the same pointer that was already freed by `UnmapBlob` in the previous step. This is the sink: a second free of already-freed memory.
+4. `bad.cpp:759` `blob=RelinquishMagickMemory(blob);`
+   - Frees the already-freed pointer from DetachBlob's return value
+
+The vulnerable object is the `blob` pointer (originally `blob_info->data`). It becomes unsafe because `DetachBlob` returns a pointer to already-unmapped memory, which the caller then frees again with `RelinquishMagickMemory`. Any access to `blob` after line 759 triggers the use-after-free.

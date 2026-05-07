@@ -1,25 +1,38 @@
-Based on my analysis of the code, here's my finding:
+
 
 ## Root Cause
 
-The vulnerability is a Use After Free where `ctx->stored_frame` is freed by `av_freep(&ctx->stored_frame)` at line 278 in `destroy_buffers`, but subsequently accessed at line 461 in `process_ftch` via `uint8_t *sf = ctx->stored_frame`. The issue occurs when `init_buffers` fails (e.g., due to memory allocation failure at line 297 in `init_buffers`), which calls `destroy_buffers` to clean up, but the control flow in `decode_frame` may still continue to process subsequent chunks including FTCH, leading to use of the freed pointer.
+The vulnerability is a **Use-After-Free** (CWE-416) in the SANM video decoder. The `stored_frame` buffer (`uint8_t*`) in `SANMVideoContext` stores frame data for STOR/FTCH operations. The vulnerability occurs when:
+
+1. A prior frame processing has stored data to `ctx->stored_frame` (via STOR chunk at lines 568-570 or 576)
+2. A subsequent FOBJ chunk triggers `process_frame_obj()` which may call `init_sizes()` → `init_buffers()` (lines 730-731) to resize buffers
+3. If `init_buffers()` fails (returns non-zero at line 731), it calls `destroy_buffers()` (line 297) which frees `ctx->stored_frame` via `av_freep()` at line 278 and sets the pointer to NULL
+4. Then when processing a later FTCH chunk in the same decode cycle, `process_ftch()` is called (line 589) which accesses `ctx->stored_frame` at line 461 - **this is the use-after-free**, accessing memory that was freed in step 3
+
+The root cause is that `stored_frame` is freed during buffer reinitialization but can still be accessed later in the same frame decode cycle if FTCH processing occurs after a failed reallocation attempt.
 
 ## Trigger Path
 
-1. `bad.c:512` `decode_frame`
-   - Entry point that processes video frames from AVPacket, iterates through chunks in a while loop
+From analyzing the code flow in `bad.c`:
 
-2. `bad.c:553` `decode_frame` → `process_frame_obj`
-   - Called to process FOBJ (frame object) chunks; can trigger buffer reallocation if frame dimensions change
+1. `bad.c:512` `decode_frame(AVCodecContext *avctx, AVFrame *frame, int *got_frame_ptr, AVPacket *pkt)`
+   - Entry point for decoding SANM video packets
+   - Processes chunks in a loop, handles STOR/FOBJ/FTCH chunks
 
-3. `bad.c:730` `process_frame_obj` → `init_buffers`
-   - When frame dimensions exceed current buffer sizes, `init_sizes` and `init_buffers` are called to reallocate buffers
+2. `bad.c:553` `process_frame_obj(SANMVideoContext *ctx, GetByteContext *gb)` (called at line 553)
+   - Called when processing FOBJ chunk
+   - May trigger buffer resizing if dimensions change
 
-4. `bad.c:297` `init_buffers` → `destroy_buffers`
-   - If memory allocation fails (e.g., `!ctx->stored_frame && !ctx->version`), `destroy_buffers` is called which frees `ctx->stored_frame` at line 278
+3. `bad.c:730` `init_sizes(SANMVideoContext *ctx, int width, int height)` (called via process_frame_obj)
+   - Updates width/height/dimensions in context
+   - Called when incoming frame dimensions exceed current buffer dimensions (line 726)
 
-5. `bad.c:589` `decode_frame` → `process_ftch`
-   - After processing FOBJ, the while loop continues and encounters the FTCH chunk; `process_ftch` is called to handle it
+4. `bad.c:731` `init_buffers(SANMVideoContext *ctx)` (called via process_frame_obj)
+   - Attempts to allocate/reallocate buffers including stored_frame
+   - If allocation fails, calls `destroy_buffers(ctx)` at line 297, **freeing stored_frame at line 278**
 
-6. `bad.c:461` `process_ftch`
-   - Accesses `ctx->stored_frame` via `uint8_t *sf = ctx->stored_frame;` - this is the use-after-free sink since the pointer was freed in step 4
+5. `bad.c:589` `process_ftch(SANMVideoContext *ctx, int size)` (called at line 589 from decode_frame)
+   - **THE SINK**: Accesses freed pointer at line 461 (`uint8_t *sf = ctx->stored_frame`)
+   - This is the Use-After-Free vulnerability trigger
+
+The trigger path requires: STOR stores data → later FOBJ triggers reinit that fails → destroy_buffers frees stored_frame → subsequent FTCH in same decode loop accesses the now-freed pointer.

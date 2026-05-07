@@ -7,6 +7,7 @@ configs/*
 !configs/*.example
 !configs/*.json.example
 logs/*
+tmp/*
 outputs/*
 cves/*
 **/build

@@ -2,11 +2,11 @@
   "baseline": {
     "correct": true,
     "score": 8,
-    "reason": "Correctly identifies the memory leak of thread_avctx allocated at line 1506 and not freed on the fail path. Accurate root cause and trigger path. Slightly basic but no errors."
+    "reason": "Correctly identifies the CWE-401 memory leak of thread_avctx in ff_frame_thread_encoder_init's fail path. Accurately pinpoints allocation at line 1506, the fail label, and return -1 as the sink. Minor imprecision in listing exact failure line numbers (mentions 1517 instead of 1519) but overall root cause and trigger path are correct."
   },
   "vastdb": {
     "correct": true,
     "score": 8,
-    "reason": "Correctly identifies the same memory leak with slightly more detail in the trigger path (source at line 1506, sink at 1540, failure points listed). Accurate and no unsupported speculation."
+    "reason": "Correctly identifies the same memory leak of thread_avctx objects in ff_frame_thread_encoder_init's loop. Accurately notes that ff_frame_thread_encoder_free does not free individual thread_avctx pointers. Slightly more precise line numbers than baseline. Contains no unsupported speculation."
   }
 }

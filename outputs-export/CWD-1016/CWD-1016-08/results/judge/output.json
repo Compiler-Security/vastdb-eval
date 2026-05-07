@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 9,
-    "reason": "Accurately identifies the OOB write root cause (gauss array indexed with GINDX instead of g), the macro arithmetic, the data-flow trigger path, and correctly notes the issue triggers for any filtersize via negative indices. No factual errors or unsupported speculation."
+    "score": 5,
+    "reason": "Correctly identifies GINDX macro producing negative indices as root cause, but output is extremely brief/truncated mid-sentence with almost no detail on trigger path or data flow."
   },
   "vastdb": {
-    "correct": false,
+    "correct": true,
     "score": 6,
-    "reason": "Correctly identifies the vulnerable sink location but has factual errors: claims bug triggers only 'when filtersize is small (such as 5 or smaller)' when it actually triggers for all filtersize >= 5, and self-contradicts with 'filtersize < 4' followed by filtersize=5 example. Also mischaracterizes the fix as needing validation rather than the correct linear indexing."
+    "reason": "Correctly identifies GINDX macro issue, specifies allocation line 385 and sink lines 503-505, explains index formula. Also truncated but more substantive than baseline."
   }
 }

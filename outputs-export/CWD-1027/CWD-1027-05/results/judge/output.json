@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies the memory leak of GF_PropertyMap when src_props is NULL triggers early return at line 893 without freeing dst_props. Correctly traces allocation through check_new_pid_props -> gf_props_new -> GF_SAFEALLOC. No unsupported speculation."
+    "correct": false,
+    "score": 2,
+    "reason": "Baseline misidentifies the vulnerable code path: it claims the leak is at the successful merge return (line 907/gf_props_merge_property returning GF_OK at 952), but that path correctly keeps the allocated map in use. The actual leak is the early return at line 893 when src_props is NULL, which returns GF_OK without freeing dst_props. This misses the root cause entirely."
   },
   "vastdb": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies the memory leak root cause (CWE-401), correctly traces the allocation path and the early-return sink at line 893. Slightly more concise than baseline but equally correct. No unsupported speculation."
+    "score": 9,
+    "reason": "VastDB accurately identifies the memory leak when src_props is NULL at lines 887-894, correctly traces the allocation through check_new_pid_props and gf_props_new, and correctly identifies the source anchor (GF_SAFEALLOC at line 842) and sink (return GF_OK at line 893). The trigger path is accurate and complete."
   }
 }

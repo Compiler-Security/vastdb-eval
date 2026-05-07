@@ -2,11 +2,11 @@
   "baseline": {
     "correct": true,
     "score": 9,
-    "reason": "Accurately identifies the NULL symbols parameter at load_specific_debug_section:985, traces the propagation through bfd_canonicalize_reloc/coff_canonicalize_reloc/coff_slurp_reloc_table, and identifies the exact sink at lines 759-760. The trigger path maps precisely to the real CVE-2017-17123 root cause. Minor: could note the upper-level call from dump_dwarf_section."
+    "reason": "Accurately identifies the NULL pointer dereference in coff_slurp_reloc_table (lines 759-760), correctly traces the data flow from load_specific_debug_section passing NULL through bfd_canonicalize_reloc -> coff_canonicalize_reloc, and explains the pointer arithmetic on NULL and subsequent dereference. No unsupported speculation."
   },
   "vastdb": {
     "correct": true,
     "score": 9,
-    "reason": "Accurately identifies the same NULL pointer dereference with complete call chain from dump_dwarf_section down to coff_slurp_reloc_table. Correctly notes the valid r_symndx condition for triggering the dereference. Line references match the test file. Equivalent quality to baseline; also could be slightly more precise about the exact fix location."
+    "reason": "Accurately identifies the same NULL pointer dereference root cause and trigger path as baseline, with additional internal UID annotations. Correctly identifies missing NULL validation on symbols parameter as the root cause. No unsupported speculation."
   }
 }

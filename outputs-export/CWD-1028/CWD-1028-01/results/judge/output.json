@@ -2,11 +2,11 @@
   "baseline": {
     "correct": true,
     "score": 8,
-    "reason": "Correctly identifies CWE-129 OOB array access: substream[1] vs get_bits(gbc,3) range 0-7, with accurate data-flow from avpriv_ac3_parse_header to line 448. Minor imprecision: says 'without any bounds validation' when validation does exist in the INDEPENDENT branch (lines 432-434) but is missing in the non-independent path."
+    "reason": "Correctly identifies OOB array access (substream[1] indexed by 3-bit 0-7 value, no bounds check). Trigger path through handle_eac3->avpriv_ac3_parse_header is accurate. Slightly imprecise by not naming the specific missing guard (non-INDEPENDENT frames bypass all checks), but the overall root cause is correctly captured."
   },
   "vastdb": {
     "correct": true,
-    "score": 9,
-    "reason": "Correctly identifies the root cause and trigger path. More precise than baseline by noting that checks at lines 426-444 do not universally validate substreamid before the array access. Accurately covers the vulnerability location, data-flow, and missing validation."
+    "score": 8,
+    "reason": "Same accurate root cause and trigger path as baseline. Correctly identifies the source (3-bit get_bits for substreamid), sink (substream[hdr->substreamid] array access), and mismatched array size. Also lacks the specific nuance about non-INDEPENDENT frame type bypass, but correctly explains the vulnerability."
   }
 }

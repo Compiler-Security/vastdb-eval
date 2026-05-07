@@ -1,28 +1,28 @@
 {
-  "time": "2026-05-06T10:16:10.770502+08:00",
-  "jobs": 1,
+  "time": "2026-05-06T23:14:40.098316+08:00",
+  "jobs": 4,
   "total": 100,
   "pending": 0,
   "ok": 100,
   "failed": 0,
   "statistics": {
     "score": {
-      "evaluated": 96,
-      "skipped": 4,
+      "evaluated": 100,
+      "skipped": 0,
       "baseline": {
-        "correct": 64,
-        "avg_score": 7.1
+        "correct": 62,
+        "avg_score": 6.54
       },
       "vastdb": {
-        "correct": 77,
-        "avg_score": 7.82
+        "correct": 87,
+        "avg_score": 7.86
       },
-      "vastdb_better": 84
+      "vastdb_better": 92
     },
     "avg_duration": {
-      "baseline": "1m16s",
-      "vastdb": "3m09s",
-      "judge": "0m50s"
+      "baseline": "1m22s",
+      "vastdb": "3m22s",
+      "judge": "1m03s"
     }
   },
   "results": [
@@ -35,17 +35,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 9.0
+            "score": 7.0
           },
           "vastdb": {
             "correct": true,
-            "score": 9.0
+            "score": 7.0
           }
         },
         "duration": {
-          "baseline": "1m03s",
-          "vastdb": "3m23s",
-          "judge": "0m54s"
+          "baseline": "0m25s",
+          "vastdb": "2m52s",
+          "judge": "0m41s"
         }
       }
     },
@@ -58,68 +58,22 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 8.0
+            "score": 7.0
           },
           "vastdb": {
             "correct": true,
-            "score": 9.0
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "0m39s",
-          "vastdb": "3m03s",
-          "judge": "1m19s"
+          "baseline": "1m04s",
+          "vastdb": "3m13s",
+          "judge": "1m49s"
         }
       }
     },
     {
       "case": "CWD-1016-03",
-      "ok": true,
-      "stage": null,
-      "error": null,
-      "statistics": {
-        "score": {
-          "baseline": {
-            "correct": false,
-            "score": 0.0
-          },
-          "vastdb": {
-            "correct": false,
-            "score": 3.0
-          }
-        },
-        "duration": {
-          "baseline": "1m49s",
-          "vastdb": "6m19s",
-          "judge": "0m55s"
-        }
-      }
-    },
-    {
-      "case": "CWD-1016-04",
-      "ok": true,
-      "stage": null,
-      "error": null,
-      "statistics": {
-        "score": {
-          "baseline": {
-            "correct": false,
-            "score": 1.0
-          },
-          "vastdb": {
-            "correct": false,
-            "score": 1.0
-          }
-        },
-        "duration": {
-          "baseline": "0m47s",
-          "vastdb": "3m36s",
-          "judge": "1m32s"
-        }
-      }
-    },
-    {
-      "case": "CWD-1016-05",
       "ok": true,
       "stage": null,
       "error": null,
@@ -135,9 +89,55 @@
           }
         },
         "duration": {
-          "baseline": "1m26s",
-          "vastdb": "2m04s",
-          "judge": "0m41s"
+          "baseline": "1m00s",
+          "vastdb": "4m36s",
+          "judge": "0m40s"
+        }
+      }
+    },
+    {
+      "case": "CWD-1016-04",
+      "ok": true,
+      "stage": null,
+      "error": null,
+      "statistics": {
+        "score": {
+          "baseline": {
+            "correct": false,
+            "score": 2.0
+          },
+          "vastdb": {
+            "correct": false,
+            "score": 1.0
+          }
+        },
+        "duration": {
+          "baseline": "0m32s",
+          "vastdb": "2m22s",
+          "judge": "1m10s"
+        }
+      }
+    },
+    {
+      "case": "CWD-1016-05",
+      "ok": true,
+      "stage": null,
+      "error": null,
+      "statistics": {
+        "score": {
+          "baseline": {
+            "correct": false,
+            "score": 1.0
+          },
+          "vastdb": {
+            "correct": true,
+            "score": 8.0
+          }
+        },
+        "duration": {
+          "baseline": "0m57s",
+          "vastdb": "2m06s",
+          "judge": "0m55s"
         }
       }
     },
@@ -150,17 +150,17 @@
         "score": {
           "baseline": {
             "correct": false,
-            "score": 2.0
+            "score": 1.0
           },
           "vastdb": {
             "correct": false,
-            "score": 2.0
+            "score": 1.0
           }
         },
         "duration": {
-          "baseline": "1m32s",
-          "vastdb": "4m34s",
-          "judge": "1m49s"
+          "baseline": "0m33s",
+          "vastdb": "3m55s",
+          "judge": "1m11s"
         }
       }
     },
@@ -172,8 +172,8 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": false,
-            "score": 3.0
+            "correct": true,
+            "score": 8.0
           },
           "vastdb": {
             "correct": true,
@@ -181,8 +181,8 @@
           }
         },
         "duration": {
-          "baseline": "0m45s",
-          "vastdb": "4m14s",
+          "baseline": "0m58s",
+          "vastdb": "3m44s",
           "judge": "1m06s"
         }
       }
@@ -196,17 +196,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 9.0
+            "score": 5.0
           },
           "vastdb": {
-            "correct": false,
+            "correct": true,
             "score": 6.0
           }
         },
         "duration": {
-          "baseline": "0m41s",
-          "vastdb": "3m43s",
-          "judge": "1m12s"
+          "baseline": "1m05s",
+          "vastdb": "3m00s",
+          "judge": "1m23s"
         }
       }
     },
@@ -223,13 +223,13 @@
           },
           "vastdb": {
             "correct": false,
-            "score": 3.0
+            "score": 2.0
           }
         },
         "duration": {
-          "baseline": "0m56s",
-          "vastdb": "6m47s",
-          "judge": "3m56s"
+          "baseline": "0m32s",
+          "vastdb": "1m58s",
+          "judge": "2m13s"
         }
       }
     },
@@ -245,14 +245,14 @@
             "score": 1.0
           },
           "vastdb": {
-            "correct": true,
-            "score": 9.0
+            "correct": false,
+            "score": 1.0
           }
         },
         "duration": {
-          "baseline": "0m52s",
-          "vastdb": "5m01s",
-          "judge": "0m31s"
+          "baseline": "0m26s",
+          "vastdb": "6m12s",
+          "judge": "1m32s"
         }
       }
     },
@@ -273,9 +273,9 @@
           }
         },
         "duration": {
-          "baseline": "0m29s",
-          "vastdb": "9m36s",
-          "judge": "2m43s"
+          "baseline": "2m42s",
+          "vastdb": "4m57s",
+          "judge": "2m06s"
         }
       }
     },
@@ -288,17 +288,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 10.0
+            "score": 8.0
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "0m29s",
-          "vastdb": "4m13s",
-          "judge": "0m21s"
+          "baseline": "1m16s",
+          "vastdb": "2m25s",
+          "judge": "0m28s"
         }
       }
     },
@@ -311,17 +311,17 @@
         "score": {
           "baseline": {
             "correct": false,
-            "score": 1.0
+            "score": 4.0
           },
           "vastdb": {
-            "correct": true,
-            "score": 9.0
+            "correct": false,
+            "score": 6.0
           }
         },
         "duration": {
-          "baseline": "1m46s",
-          "vastdb": "9m00s",
-          "judge": "1m15s"
+          "baseline": "0m44s",
+          "vastdb": "2m58s",
+          "judge": "1m46s"
         }
       }
     },
@@ -334,7 +334,7 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 9.0
+            "score": 7.0
           },
           "vastdb": {
             "correct": true,
@@ -342,9 +342,9 @@
           }
         },
         "duration": {
-          "baseline": "0m38s",
-          "vastdb": "6m34s",
-          "judge": "1m14s"
+          "baseline": "0m20s",
+          "vastdb": "2m52s",
+          "judge": "0m32s"
         }
       }
     },
@@ -356,8 +356,8 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 9.0
+            "correct": false,
+            "score": 3.0
           },
           "vastdb": {
             "correct": true,
@@ -365,60 +365,14 @@
           }
         },
         "duration": {
-          "baseline": "0m29s",
-          "vastdb": "1m34s",
-          "judge": "0m50s"
+          "baseline": "0m22s",
+          "vastdb": "2m33s",
+          "judge": "0m55s"
         }
       }
     },
     {
       "case": "CWD-1025-01",
-      "ok": true,
-      "stage": null,
-      "error": null,
-      "statistics": {
-        "score": {
-          "baseline": {
-            "correct": true,
-            "score": 9.0
-          },
-          "vastdb": {
-            "correct": true,
-            "score": 9.0
-          }
-        },
-        "duration": {
-          "baseline": "1m55s",
-          "vastdb": "3m28s",
-          "judge": "1m02s"
-        }
-      }
-    },
-    {
-      "case": "CWD-1025-02",
-      "ok": true,
-      "stage": null,
-      "error": null,
-      "statistics": {
-        "score": {
-          "baseline": {
-            "correct": false,
-            "score": 1.0
-          },
-          "vastdb": {
-            "correct": false,
-            "score": 1.0
-          }
-        },
-        "duration": {
-          "baseline": "0m39s",
-          "vastdb": "4m13s",
-          "judge": "2m31s"
-        }
-      }
-    },
-    {
-      "case": "CWD-1025-03",
       "ok": true,
       "stage": null,
       "error": null,
@@ -434,9 +388,55 @@
           }
         },
         "duration": {
-          "baseline": "0m59s",
-          "vastdb": "3m08s",
-          "judge": "1m01s"
+          "baseline": "4m33s",
+          "vastdb": "3m20s",
+          "judge": "2m07s"
+        }
+      }
+    },
+    {
+      "case": "CWD-1025-02",
+      "ok": true,
+      "stage": null,
+      "error": null,
+      "statistics": {
+        "score": {
+          "baseline": {
+            "correct": true,
+            "score": 8.0
+          },
+          "vastdb": {
+            "correct": true,
+            "score": 9.0
+          }
+        },
+        "duration": {
+          "baseline": "2m29s",
+          "vastdb": "2m17s",
+          "judge": "1m09s"
+        }
+      }
+    },
+    {
+      "case": "CWD-1025-03",
+      "ok": true,
+      "stage": null,
+      "error": null,
+      "statistics": {
+        "score": {
+          "baseline": {
+            "correct": false,
+            "score": 3.0
+          },
+          "vastdb": {
+            "correct": true,
+            "score": 9.0
+          }
+        },
+        "duration": {
+          "baseline": "0m30s",
+          "vastdb": "2m52s",
+          "judge": "1m08s"
         }
       }
     },
@@ -448,18 +448,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 9.0
+            "correct": false,
+            "score": 3.0
           },
           "vastdb": {
-            "correct": false,
-            "score": 4.0
+            "correct": true,
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "1m44s",
-          "vastdb": "3m23s",
-          "judge": "0m45s"
+          "baseline": "0m19s",
+          "vastdb": "3m05s",
+          "judge": "0m54s"
         }
       }
     },
@@ -472,17 +472,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 9.0
+            "score": 10.0
           },
           "vastdb": {
             "correct": true,
-            "score": 9.0
+            "score": 10.0
           }
         },
         "duration": {
-          "baseline": "0m34s",
-          "vastdb": "3m06s",
-          "judge": "0m22s"
+          "baseline": "0m52s",
+          "vastdb": "3m04s",
+          "judge": "1m01s"
         }
       }
     },
@@ -495,17 +495,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 9.0
+            "score": 8.0
           },
           "vastdb": {
             "correct": true,
-            "score": 9.0
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "2m28s",
-          "vastdb": "1m58s",
-          "judge": "0m48s"
+          "baseline": "0m58s",
+          "vastdb": "1m35s",
+          "judge": "0m55s"
         }
       }
     },
@@ -518,17 +518,17 @@
         "score": {
           "baseline": {
             "correct": false,
-            "score": 3.0
+            "score": 5.0
           },
           "vastdb": {
-            "correct": true,
-            "score": 7.0
+            "correct": false,
+            "score": 5.0
           }
         },
         "duration": {
-          "baseline": "4m22s",
-          "vastdb": "4m13s",
-          "judge": "2m04s"
+          "baseline": "6m54s",
+          "vastdb": "4m43s",
+          "judge": "2m26s"
         }
       }
     },
@@ -540,18 +540,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": false,
-            "score": 3.0
+            "correct": true,
+            "score": 8.0
           },
           "vastdb": {
             "correct": true,
-            "score": 7.0
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "2m15s",
-          "vastdb": "2m09s",
-          "judge": "1m30s"
+          "baseline": "0m44s",
+          "vastdb": "5m41s",
+          "judge": "2m24s"
         }
       }
     },
@@ -572,9 +572,9 @@
           }
         },
         "duration": {
-          "baseline": "0m44s",
-          "vastdb": "3m38s",
-          "judge": "0m26s"
+          "baseline": "0m32s",
+          "vastdb": "1m43s",
+          "judge": "0m24s"
         }
       }
     },
@@ -586,18 +586,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": false,
-            "score": 2.0
+            "correct": true,
+            "score": 10.0
           },
           "vastdb": {
             "correct": true,
-            "score": 8.0
+            "score": 10.0
           }
         },
         "duration": {
-          "baseline": "0m29s",
-          "vastdb": "2m27s",
-          "judge": "1m14s"
+          "baseline": "0m37s",
+          "vastdb": "2m58s",
+          "judge": "0m59s"
         }
       }
     },
@@ -610,17 +610,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 9.0
+            "score": 8.0
           },
           "vastdb": {
-            "correct": true,
-            "score": 9.0
+            "correct": false,
+            "score": 2.0
           }
         },
         "duration": {
-          "baseline": "1m07s",
-          "vastdb": "2m29s",
-          "judge": "1m01s"
+          "baseline": "0m57s",
+          "vastdb": "7m09s",
+          "judge": "1m23s"
         }
       }
     },
@@ -632,18 +632,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 7.0
+            "correct": false,
+            "score": 5.0
           },
           "vastdb": {
             "correct": true,
-            "score": 7.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "2m11s",
-          "vastdb": "2m42s",
-          "judge": "0m29s"
+          "baseline": "4m25s",
+          "vastdb": "6m57s",
+          "judge": "0m33s"
         }
       }
     },
@@ -656,17 +656,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "0m38s",
-          "vastdb": "1m22s",
-          "judge": "0m34s"
+          "baseline": "0m22s",
+          "vastdb": "1m16s",
+          "judge": "0m29s"
         }
       }
     },
@@ -676,11 +676,21 @@
       "stage": null,
       "error": null,
       "statistics": {
-        "score": null,
-        "duration": {
-          "baseline": "0m50s"
+        "score": {
+          "baseline": {
+            "correct": true,
+            "score": 8.0
+          },
+          "vastdb": {
+            "correct": true,
+            "score": 8.0
+          }
         },
-        "score_error": "missing file: /home/jialeiwang/mlir-dev/vastdb-eval/outputs/CWD-1026/CWD-1026-09/results/judge/output.json"
+        "duration": {
+          "baseline": "1m51s",
+          "vastdb": "5m39s",
+          "judge": "1m05s"
+        }
       }
     },
     {
@@ -692,17 +702,17 @@
         "score": {
           "baseline": {
             "correct": false,
-            "score": 1.0
+            "score": 3.0
           },
           "vastdb": {
             "correct": true,
-            "score": 8.0
+            "score": 7.0
           }
         },
         "duration": {
-          "baseline": "0m53s",
-          "vastdb": "3m21s",
-          "judge": "0m40s"
+          "baseline": "4m54s",
+          "vastdb": "8m37s",
+          "judge": "1m17s"
         }
       }
     },
@@ -712,9 +722,21 @@
       "stage": null,
       "error": null,
       "statistics": {
-        "score": null,
-        "duration": {},
-        "score_error": "missing file: /home/jialeiwang/mlir-dev/vastdb-eval/outputs/CWD-1026/CWD-1026-11/results/judge/output.json"
+        "score": {
+          "baseline": {
+            "correct": false,
+            "score": 3.0
+          },
+          "vastdb": {
+            "correct": false,
+            "score": 3.0
+          }
+        },
+        "duration": {
+          "baseline": "0m20s",
+          "vastdb": "4m02s",
+          "judge": "2m56s"
+        }
       }
     },
     {
@@ -725,8 +747,8 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 7.0
+            "correct": false,
+            "score": 5.0
           },
           "vastdb": {
             "correct": true,
@@ -734,9 +756,9 @@
           }
         },
         "duration": {
-          "baseline": "0m28s",
-          "vastdb": "1m49s",
-          "judge": "1m00s"
+          "baseline": "0m41s",
+          "vastdb": "3m36s",
+          "judge": "1m45s"
         }
       }
     },
@@ -746,9 +768,21 @@
       "stage": null,
       "error": null,
       "statistics": {
-        "score": null,
-        "duration": {},
-        "score_error": "missing file: /home/jialeiwang/mlir-dev/vastdb-eval/outputs/CWD-1026/CWD-1026-13/results/judge/output.json"
+        "score": {
+          "baseline": {
+            "correct": false,
+            "score": 4.0
+          },
+          "vastdb": {
+            "correct": true,
+            "score": 7.0
+          }
+        },
+        "duration": {
+          "baseline": "0m58s",
+          "vastdb": "4m32s",
+          "judge": "0m52s"
+        }
       }
     },
     {
@@ -757,9 +791,21 @@
       "stage": null,
       "error": null,
       "statistics": {
-        "score": null,
-        "duration": {},
-        "score_error": "missing file: /home/jialeiwang/mlir-dev/vastdb-eval/outputs/CWD-1026/CWD-1026-14/results/judge/output.json"
+        "score": {
+          "baseline": {
+            "correct": true,
+            "score": 8.0
+          },
+          "vastdb": {
+            "correct": true,
+            "score": 8.0
+          }
+        },
+        "duration": {
+          "baseline": "1m29s",
+          "vastdb": "5m11s",
+          "judge": "1m24s"
+        }
       }
     },
     {
@@ -771,17 +817,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "0m26s",
-          "vastdb": "1m42s",
-          "judge": "0m23s"
+          "baseline": "0m17s",
+          "vastdb": "4m20s",
+          "judge": "0m24s"
         }
       }
     },
@@ -802,9 +848,9 @@
           }
         },
         "duration": {
-          "baseline": "1m31s",
-          "vastdb": "4m33s",
-          "judge": "0m21s"
+          "baseline": "1m06s",
+          "vastdb": "2m34s",
+          "judge": "0m42s"
         }
       }
     },
@@ -821,13 +867,13 @@
           },
           "vastdb": {
             "correct": true,
-            "score": 6.0
+            "score": 10.0
           }
         },
         "duration": {
-          "baseline": "0m47s",
-          "vastdb": "1m57s",
-          "judge": "0m44s"
+          "baseline": "1m20s",
+          "vastdb": "1m42s",
+          "judge": "0m34s"
         }
       }
     },
@@ -839,18 +885,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 7.0
+            "correct": false,
+            "score": 5.0
           },
           "vastdb": {
             "correct": true,
-            "score": 7.0
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "2m24s",
-          "vastdb": "1m53s",
-          "judge": "0m31s"
+          "baseline": "0m27s",
+          "vastdb": "2m43s",
+          "judge": "0m50s"
         }
       }
     },
@@ -862,18 +908,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 10.0
+            "correct": false,
+            "score": 2.0
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "1m25s",
-          "vastdb": "1m24s",
-          "judge": "0m31s"
+          "baseline": "1m23s",
+          "vastdb": "1m22s",
+          "judge": "0m43s"
         }
       }
     },
@@ -886,17 +932,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "2m08s",
-          "vastdb": "1m51s",
-          "judge": "0m32s"
+          "baseline": "0m47s",
+          "vastdb": "3m04s",
+          "judge": "2m44s"
         }
       }
     },
@@ -909,17 +955,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 10.0
+            "score": 6.0
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "0m34s",
-          "vastdb": "2m16s",
-          "judge": "0m26s"
+          "baseline": "2m40s",
+          "vastdb": "1m49s",
+          "judge": "0m33s"
         }
       }
     },
@@ -940,9 +986,9 @@
           }
         },
         "duration": {
-          "baseline": "1m03s",
-          "vastdb": "2m09s",
-          "judge": "0m24s"
+          "baseline": "1m50s",
+          "vastdb": "2m54s",
+          "judge": "0m30s"
         }
       }
     },
@@ -963,9 +1009,9 @@
           }
         },
         "duration": {
-          "baseline": "0m39s",
-          "vastdb": "2m05s",
-          "judge": "0m27s"
+          "baseline": "0m37s",
+          "vastdb": "2m57s",
+          "judge": "0m29s"
         }
       }
     },
@@ -982,12 +1028,12 @@
           },
           "vastdb": {
             "correct": true,
-            "score": 8.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "1m07s",
-          "vastdb": "2m53s",
+          "baseline": "0m49s",
+          "vastdb": "3m27s",
           "judge": "0m22s"
         }
       }
@@ -1000,18 +1046,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 9.0
-          },
-          "vastdb": {
             "correct": false,
             "score": 5.0
+          },
+          "vastdb": {
+            "correct": true,
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "1m41s",
-          "vastdb": "2m57s",
-          "judge": "0m41s"
+          "baseline": "0m49s",
+          "vastdb": "2m28s",
+          "judge": "0m55s"
         }
       }
     },
@@ -1032,9 +1078,9 @@
           }
         },
         "duration": {
-          "baseline": "0m39s",
-          "vastdb": "3m14s",
-          "judge": "0m28s"
+          "baseline": "0m25s",
+          "vastdb": "1m13s",
+          "judge": "0m45s"
         }
       }
     },
@@ -1047,17 +1093,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 8.0
+            "score": 9.0
           },
           "vastdb": {
             "correct": true,
-            "score": 8.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "0m43s",
-          "vastdb": "3m58s",
-          "judge": "0m24s"
+          "baseline": "0m20s",
+          "vastdb": "2m08s",
+          "judge": "0m32s"
         }
       }
     },
@@ -1074,13 +1120,13 @@
           },
           "vastdb": {
             "correct": true,
-            "score": 9.0
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "0m32s",
-          "vastdb": "2m56s",
-          "judge": "0m43s"
+          "baseline": "0m18s",
+          "vastdb": "1m09s",
+          "judge": "0m55s"
         }
       }
     },
@@ -1092,18 +1138,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 8.0
+            "correct": false,
+            "score": 6.0
           },
           "vastdb": {
-            "correct": false,
-            "score": 2.0
+            "correct": true,
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "0m38s",
-          "vastdb": "2m18s",
-          "judge": "0m45s"
+          "baseline": "0m23s",
+          "vastdb": "1m26s",
+          "judge": "1m47s"
         }
       }
     },
@@ -1115,18 +1161,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
+            "correct": false,
             "score": 5.0
           },
           "vastdb": {
-            "correct": true,
-            "score": 6.0
+            "correct": false,
+            "score": 2.0
           }
         },
         "duration": {
-          "baseline": "2m10s",
-          "vastdb": "2m32s",
-          "judge": "0m41s"
+          "baseline": "7m57s",
+          "vastdb": "4m04s",
+          "judge": "0m40s"
         }
       }
     },
@@ -1147,8 +1193,8 @@
           }
         },
         "duration": {
-          "baseline": "2m54s",
-          "vastdb": "2m53s",
+          "baseline": "1m17s",
+          "vastdb": "2m18s",
           "judge": "0m33s"
         }
       }
@@ -1170,9 +1216,9 @@
           }
         },
         "duration": {
-          "baseline": "1m06s",
-          "vastdb": "2m54s",
-          "judge": "0m35s"
+          "baseline": "0m30s",
+          "vastdb": "3m40s",
+          "judge": "0m22s"
         }
       }
     },
@@ -1184,18 +1230,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": false,
-            "score": 5.0
+            "correct": true,
+            "score": 7.0
           },
           "vastdb": {
             "correct": true,
-            "score": 9.0
+            "score": 3.0
           }
         },
         "duration": {
-          "baseline": "0m30s",
-          "vastdb": "2m27s",
-          "judge": "0m45s"
+          "baseline": "0m25s",
+          "vastdb": "1m41s",
+          "judge": "1m10s"
         }
       }
     },
@@ -1208,17 +1254,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "1m56s",
-          "vastdb": "1m14s",
-          "judge": "0m16s"
+          "baseline": "2m15s",
+          "vastdb": "8m31s",
+          "judge": "0m31s"
         }
       }
     },
@@ -1230,18 +1276,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 9.0
+            "correct": false,
+            "score": 2.0
           },
           "vastdb": {
-            "correct": false,
-            "score": 0.0
+            "correct": true,
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "0m36s",
-          "vastdb": "0m49s",
-          "judge": "0m45s"
+          "baseline": "1m15s",
+          "vastdb": "4m43s",
+          "judge": "1m38s"
         }
       }
     },
@@ -1254,6 +1300,75 @@
         "score": {
           "baseline": {
             "correct": true,
+            "score": 7.0
+          },
+          "vastdb": {
+            "correct": true,
+            "score": 8.0
+          }
+        },
+        "duration": {
+          "baseline": "3m44s",
+          "vastdb": "3m10s",
+          "judge": "1m19s"
+        }
+      }
+    },
+    {
+      "case": "CWD-1031-02",
+      "ok": true,
+      "stage": null,
+      "error": null,
+      "statistics": {
+        "score": {
+          "baseline": {
+            "correct": true,
+            "score": 10.0
+          },
+          "vastdb": {
+            "correct": false,
+            "score": 2.0
+          }
+        },
+        "duration": {
+          "baseline": "0m21s",
+          "vastdb": "2m23s",
+          "judge": "0m55s"
+        }
+      }
+    },
+    {
+      "case": "CWD-1031-03",
+      "ok": true,
+      "stage": null,
+      "error": null,
+      "statistics": {
+        "score": {
+          "baseline": {
+            "correct": false,
+            "score": 2.0
+          },
+          "vastdb": {
+            "correct": true,
+            "score": 9.0
+          }
+        },
+        "duration": {
+          "baseline": "0m50s",
+          "vastdb": "1m32s",
+          "judge": "0m55s"
+        }
+      }
+    },
+    {
+      "case": "CWD-1031-04",
+      "ok": true,
+      "stage": null,
+      "error": null,
+      "statistics": {
+        "score": {
+          "baseline": {
+            "correct": true,
             "score": 9.0
           },
           "vastdb": {
@@ -1262,14 +1377,14 @@
           }
         },
         "duration": {
-          "baseline": "1m00s",
-          "vastdb": "4m00s",
-          "judge": "0m58s"
+          "baseline": "0m19s",
+          "vastdb": "4m44s",
+          "judge": "0m24s"
         }
       }
     },
     {
-      "case": "CWD-1031-02",
+      "case": "CWD-1031-05",
       "ok": true,
       "stage": null,
       "error": null,
@@ -1285,78 +1400,9 @@
           }
         },
         "duration": {
-          "baseline": "0m29s",
-          "vastdb": "3m55s",
-          "judge": "1m45s"
-        }
-      }
-    },
-    {
-      "case": "CWD-1031-03",
-      "ok": true,
-      "stage": null,
-      "error": null,
-      "statistics": {
-        "score": {
-          "baseline": {
-            "correct": true,
-            "score": 10.0
-          },
-          "vastdb": {
-            "correct": true,
-            "score": 10.0
-          }
-        },
-        "duration": {
-          "baseline": "0m56s",
-          "vastdb": "2m06s",
-          "judge": "0m27s"
-        }
-      }
-    },
-    {
-      "case": "CWD-1031-04",
-      "ok": true,
-      "stage": null,
-      "error": null,
-      "statistics": {
-        "score": {
-          "baseline": {
-            "correct": true,
-            "score": 10.0
-          },
-          "vastdb": {
-            "correct": true,
-            "score": 10.0
-          }
-        },
-        "duration": {
-          "baseline": "0m43s",
-          "vastdb": "2m41s",
-          "judge": "0m29s"
-        }
-      }
-    },
-    {
-      "case": "CWD-1031-05",
-      "ok": true,
-      "stage": null,
-      "error": null,
-      "statistics": {
-        "score": {
-          "baseline": {
-            "correct": false,
-            "score": 5.0
-          },
-          "vastdb": {
-            "correct": false,
-            "score": 5.0
-          }
-        },
-        "duration": {
-          "baseline": "0m49s",
-          "vastdb": "2m17s",
-          "judge": "1m53s"
+          "baseline": "0m33s",
+          "vastdb": "3m15s",
+          "judge": "1m14s"
         }
       }
     },
@@ -1368,18 +1414,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 9.0
+            "correct": false,
+            "score": 3.0
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "0m29s",
-          "vastdb": "2m28s",
-          "judge": "0m26s"
+          "baseline": "0m33s",
+          "vastdb": "4m05s",
+          "judge": "0m36s"
         }
       }
     },
@@ -1391,8 +1437,8 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": false,
-            "score": 3.0
+            "correct": true,
+            "score": 7.0
           },
           "vastdb": {
             "correct": true,
@@ -1400,9 +1446,9 @@
           }
         },
         "duration": {
-          "baseline": "0m44s",
-          "vastdb": "3m09s",
-          "judge": "1m12s"
+          "baseline": "1m02s",
+          "vastdb": "2m48s",
+          "judge": "1m30s"
         }
       }
     },
@@ -1415,17 +1461,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "0m30s",
-          "vastdb": "2m35s",
-          "judge": "0m28s"
+          "baseline": "0m20s",
+          "vastdb": "4m36s",
+          "judge": "0m42s"
         }
       }
     },
@@ -1446,9 +1492,9 @@
           }
         },
         "duration": {
-          "baseline": "1m02s",
-          "vastdb": "3m03s",
-          "judge": "0m33s"
+          "baseline": "0m23s",
+          "vastdb": "2m50s",
+          "judge": "0m22s"
         }
       }
     },
@@ -1460,18 +1506,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": false,
-            "score": 6.0
+            "correct": true,
+            "score": 9.0
           },
           "vastdb": {
-            "correct": false,
-            "score": 6.0
+            "correct": true,
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "0m43s",
-          "vastdb": "3m16s",
-          "judge": "1m32s"
+          "baseline": "0m40s",
+          "vastdb": "2m22s",
+          "judge": "2m46s"
         }
       }
     },
@@ -1483,18 +1529,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": false,
-            "score": 5.0
+            "correct": true,
+            "score": 8.0
           },
           "vastdb": {
-            "correct": false,
-            "score": 6.0
+            "correct": true,
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "1m18s",
-          "vastdb": "2m23s",
-          "judge": "0m35s"
+          "baseline": "4m29s",
+          "vastdb": "4m54s",
+          "judge": "0m34s"
         }
       }
     },
@@ -1506,18 +1552,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 10.0
+            "correct": false,
+            "score": 2.0
           },
           "vastdb": {
-            "correct": true,
-            "score": 10.0
+            "correct": false,
+            "score": 2.0
           }
         },
         "duration": {
-          "baseline": "1m25s",
-          "vastdb": "2m35s",
-          "judge": "0m19s"
+          "baseline": "1m40s",
+          "vastdb": "2m24s",
+          "judge": "0m43s"
         }
       }
     },
@@ -1529,18 +1575,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 9.0
+            "correct": false,
+            "score": 3.0
           },
           "vastdb": {
             "correct": false,
-            "score": 0.0
+            "score": 2.0
           }
         },
         "duration": {
-          "baseline": "2m23s",
-          "vastdb": "2m47s",
-          "judge": "0m37s"
+          "baseline": "2m13s",
+          "vastdb": "3m17s",
+          "judge": "0m38s"
         }
       }
     },
@@ -1552,18 +1598,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": false,
-            "score": 5.0
+            "correct": true,
+            "score": 8.0
           },
           "vastdb": {
-            "correct": false,
-            "score": 7.0
+            "correct": true,
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "3m28s",
-          "vastdb": "4m13s",
-          "judge": "2m08s"
+          "baseline": "3m22s",
+          "vastdb": "3m18s",
+          "judge": "1m45s"
         }
       }
     },
@@ -1575,18 +1621,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": false,
-            "score": 3.0
+            "correct": true,
+            "score": 6.0
           },
           "vastdb": {
             "correct": true,
-            "score": 7.0
+            "score": 6.0
           }
         },
         "duration": {
-          "baseline": "0m37s",
-          "vastdb": "2m03s",
-          "judge": "0m59s"
+          "baseline": "0m58s",
+          "vastdb": "5m02s",
+          "judge": "1m46s"
         }
       }
     },
@@ -1598,18 +1644,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": false,
-            "score": 2.0
+            "correct": true,
+            "score": 9.0
           },
           "vastdb": {
             "correct": true,
-            "score": 7.0
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "1m23s",
-          "vastdb": "3m25s",
-          "judge": "1m34s"
+          "baseline": "1m45s",
+          "vastdb": "2m33s",
+          "judge": "0m39s"
         }
       }
     },
@@ -1630,9 +1676,9 @@
           }
         },
         "duration": {
-          "baseline": "2m46s",
-          "vastdb": "2m51s",
-          "judge": "0m28s"
+          "baseline": "1m09s",
+          "vastdb": "3m56s",
+          "judge": "0m27s"
         }
       }
     },
@@ -1644,8 +1690,8 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 9.0
+            "correct": false,
+            "score": 2.0
           },
           "vastdb": {
             "correct": true,
@@ -1653,9 +1699,9 @@
           }
         },
         "duration": {
-          "baseline": "1m31s",
-          "vastdb": "2m21s",
-          "judge": "0m32s"
+          "baseline": "1m56s",
+          "vastdb": "3m53s",
+          "judge": "0m53s"
         }
       }
     },
@@ -1668,17 +1714,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 9.0
+            "score": 8.0
           },
           "vastdb": {
             "correct": true,
-            "score": 9.0
+            "score": 10.0
           }
         },
         "duration": {
-          "baseline": "0m34s",
-          "vastdb": "2m24s",
-          "judge": "0m32s"
+          "baseline": "0m32s",
+          "vastdb": "1m39s",
+          "judge": "0m48s"
         }
       }
     },
@@ -1691,7 +1737,7 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           },
           "vastdb": {
             "correct": true,
@@ -1699,9 +1745,9 @@
           }
         },
         "duration": {
-          "baseline": "3m20s",
-          "vastdb": "2m43s",
-          "judge": "0m29s"
+          "baseline": "3m27s",
+          "vastdb": "4m02s",
+          "judge": "0m48s"
         }
       }
     },
@@ -1722,9 +1768,9 @@
           }
         },
         "duration": {
-          "baseline": "0m28s",
-          "vastdb": "2m58s",
-          "judge": "0m32s"
+          "baseline": "0m40s",
+          "vastdb": "4m04s",
+          "judge": "0m31s"
         }
       }
     },
@@ -1736,18 +1782,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 9.0
+            "correct": false,
+            "score": 5.0
           },
           "vastdb": {
             "correct": true,
-            "score": 7.0
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "1m41s",
-          "vastdb": "2m33s",
-          "judge": "0m28s"
+          "baseline": "1m39s",
+          "vastdb": "3m26s",
+          "judge": "1m38s"
         }
       }
     },
@@ -1764,13 +1810,13 @@
           },
           "vastdb": {
             "correct": true,
-            "score": 9.0
+            "score": 10.0
           }
         },
         "duration": {
-          "baseline": "0m32s",
-          "vastdb": "2m45s",
-          "judge": "0m28s"
+          "baseline": "0m21s",
+          "vastdb": "3m21s",
+          "judge": "0m32s"
         }
       }
     },
@@ -1783,17 +1829,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "0m44s",
-          "vastdb": "2m29s",
-          "judge": "0m41s"
+          "baseline": "0m33s",
+          "vastdb": "3m29s",
+          "judge": "0m22s"
         }
       }
     },
@@ -1806,17 +1852,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 10.0
+            "score": 7.0
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "1m25s",
-          "vastdb": "2m30s",
-          "judge": "0m20s"
+          "baseline": "1m30s",
+          "vastdb": "2m37s",
+          "judge": "1m12s"
         }
       }
     },
@@ -1837,9 +1883,9 @@
           }
         },
         "duration": {
-          "baseline": "0m36s",
-          "vastdb": "2m46s",
-          "judge": "0m27s"
+          "baseline": "0m28s",
+          "vastdb": "1m37s",
+          "judge": "0m42s"
         }
       }
     },
@@ -1851,18 +1897,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 10.0
+            "correct": false,
+            "score": 1.0
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "0m32s",
-          "vastdb": "4m15s",
-          "judge": "0m39s"
+          "baseline": "1m41s",
+          "vastdb": "2m47s",
+          "judge": "0m58s"
         }
       }
     },
@@ -1883,9 +1929,9 @@
           }
         },
         "duration": {
-          "baseline": "1m29s",
+          "baseline": "0m49s",
           "vastdb": "1m33s",
-          "judge": "0m19s"
+          "judge": "0m33s"
         }
       }
     },
@@ -1898,17 +1944,17 @@
         "score": {
           "baseline": {
             "correct": false,
-            "score": 7.0
+            "score": 6.0
           },
           "vastdb": {
-            "correct": false,
-            "score": 0.0
+            "correct": true,
+            "score": 7.0
           }
         },
         "duration": {
-          "baseline": "0m49s",
-          "vastdb": "1m43s",
-          "judge": "0m48s"
+          "baseline": "1m10s",
+          "vastdb": "3m54s",
+          "judge": "2m14s"
         }
       }
     },
@@ -1920,18 +1966,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": false,
-            "score": 2.0
+            "correct": true,
+            "score": 9.0
           },
           "vastdb": {
             "correct": true,
-            "score": 8.0
+            "score": 7.0
           }
         },
         "duration": {
-          "baseline": "0m45s",
-          "vastdb": "2m28s",
-          "judge": "0m38s"
+          "baseline": "0m19s",
+          "vastdb": "3m32s",
+          "judge": "0m36s"
         }
       }
     },
@@ -1943,18 +1989,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": false,
-            "score": 5.0
+            "correct": true,
+            "score": 9.0
           },
           "vastdb": {
-            "correct": false,
-            "score": 4.0
+            "correct": true,
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "0m30s",
-          "vastdb": "3m28s",
-          "judge": "1m58s"
+          "baseline": "0m18s",
+          "vastdb": "4m01s",
+          "judge": "0m49s"
         }
       }
     },
@@ -1975,8 +2021,8 @@
           }
         },
         "duration": {
-          "baseline": "0m22s",
-          "vastdb": "2m28s",
+          "baseline": "0m55s",
+          "vastdb": "2m17s",
           "judge": "0m22s"
         }
       }
@@ -1990,17 +2036,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 6.0
+            "score": 10.0
           },
           "vastdb": {
             "correct": true,
-            "score": 9.0
+            "score": 10.0
           }
         },
         "duration": {
-          "baseline": "1m33s",
-          "vastdb": "3m40s",
-          "judge": "0m17s"
+          "baseline": "0m21s",
+          "vastdb": "4m30s",
+          "judge": "0m25s"
         }
       }
     },
@@ -2017,13 +2063,13 @@
           },
           "vastdb": {
             "correct": true,
-            "score": 8.0
+            "score": 7.0
           }
         },
         "duration": {
-          "baseline": "3m35s",
-          "vastdb": "4m13s",
-          "judge": "0m47s"
+          "baseline": "4m06s",
+          "vastdb": "3m39s",
+          "judge": "2m26s"
         }
       }
     },
@@ -2035,18 +2081,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": false,
-            "score": 4.0
+            "correct": true,
+            "score": 10.0
           },
           "vastdb": {
             "correct": true,
-            "score": 9.0
+            "score": 10.0
           }
         },
         "duration": {
-          "baseline": "3m39s",
-          "vastdb": "4m27s",
-          "judge": "0m54s"
+          "baseline": "2m06s",
+          "vastdb": "3m31s",
+          "judge": "1m05s"
         }
       }
     },
@@ -2058,18 +2104,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 7.0
+            "correct": false,
+            "score": 3.0
           },
           "vastdb": {
             "correct": true,
-            "score": 8.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "3m05s",
-          "vastdb": "2m39s",
-          "judge": "0m41s"
+          "baseline": "2m17s",
+          "vastdb": "2m56s",
+          "judge": "0m36s"
         }
       }
     },
@@ -2090,9 +2136,9 @@
           }
         },
         "duration": {
-          "baseline": "0m38s",
-          "vastdb": "2m13s",
-          "judge": "0m27s"
+          "baseline": "0m23s",
+          "vastdb": "2m58s",
+          "judge": "0m32s"
         }
       }
     },
@@ -2109,13 +2155,13 @@
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "1m03s",
-          "vastdb": "3m08s",
-          "judge": "0m39s"
+          "baseline": "1m18s",
+          "vastdb": "3m48s",
+          "judge": "1m43s"
         }
       }
     },
@@ -2127,18 +2173,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": false,
-            "score": 5.0
+            "correct": true,
+            "score": 9.0
           },
           "vastdb": {
             "correct": true,
-            "score": 9.0
+            "score": 10.0
           }
         },
         "duration": {
-          "baseline": "0m38s",
-          "vastdb": "2m37s",
-          "judge": "0m41s"
+          "baseline": "0m20s",
+          "vastdb": "2m05s",
+          "judge": "1m15s"
         }
       }
     },
@@ -2150,18 +2196,18 @@
       "statistics": {
         "score": {
           "baseline": {
-            "correct": true,
-            "score": 8.0
+            "correct": false,
+            "score": 4.0
           },
           "vastdb": {
             "correct": true,
-            "score": 7.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "0m42s",
-          "vastdb": "2m59s",
-          "judge": "0m32s"
+          "baseline": "2m08s",
+          "vastdb": "4m13s",
+          "judge": "0m37s"
         }
       }
     },
@@ -2182,9 +2228,9 @@
           }
         },
         "duration": {
-          "baseline": "2m15s",
-          "vastdb": "2m21s",
-          "judge": "0m34s"
+          "baseline": "2m51s",
+          "vastdb": "5m07s",
+          "judge": "0m31s"
         }
       }
     },
@@ -2197,17 +2243,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 10.0
+            "score": 7.0
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 8.0
           }
         },
         "duration": {
-          "baseline": "4m13s",
-          "vastdb": "4m48s",
-          "judge": "0m38s"
+          "baseline": "2m56s",
+          "vastdb": "4m22s",
+          "judge": "0m29s"
         }
       }
     },
@@ -2220,7 +2266,7 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           },
           "vastdb": {
             "correct": true,
@@ -2228,9 +2274,9 @@
           }
         },
         "duration": {
-          "baseline": "0m51s",
-          "vastdb": "4m04s",
-          "judge": "0m39s"
+          "baseline": "0m20s",
+          "vastdb": "4m44s",
+          "judge": "0m43s"
         }
       }
     },
@@ -2243,17 +2289,17 @@
         "score": {
           "baseline": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           },
           "vastdb": {
             "correct": true,
-            "score": 10.0
+            "score": 9.0
           }
         },
         "duration": {
-          "baseline": "2m15s",
-          "vastdb": "3m46s",
-          "judge": "0m33s"
+          "baseline": "1m20s",
+          "vastdb": "2m02s",
+          "judge": "0m34s"
         }
       }
     },
@@ -2266,17 +2312,17 @@
         "score": {
           "baseline": {
             "correct": false,
-            "score": 6.0
+            "score": 3.0
           },
           "vastdb": {
-            "correct": false,
-            "score": 6.0
+            "correct": true,
+            "score": 10.0
           }
         },
         "duration": {
-          "baseline": "1m03s",
-          "vastdb": "3m34s",
-          "judge": "0m36s"
+          "baseline": "0m34s",
+          "vastdb": "1m41s",
+          "judge": "3m22s"
         }
       }
     }

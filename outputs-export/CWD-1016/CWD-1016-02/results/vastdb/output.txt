@@ -1,22 +1,7 @@
-Based on my analysis of the code and VAST DB queries, I now have enough information to provide the vulnerability explanation.
+
+
+Based on my source code analysis and VAST DB tracing, I have enough evidence. Let me provide the final explanation:
 
 ## Root Cause
 
-The vulnerability stems from an out-of-bounds write in the `FILTER_INTRA()` macro (line 434-441). The macro accesses the `cur` buffer using offset parameters (`mrefs`, `prefs`, `mrefs3`, `prefs3`) that can become **negative** when computed in `filter_slice` at lines 510-514. The check at line 467 (`if (link->w < 3 || link->h < 3)`) only validates that frame dimensions are at least 3 pixels, but does NOT validate that the computed offset parameters will be non-negative. When `y + df >= td->h` or `y <= (df - 1)`, negative offset values are passed to `filter_intra`, causing out-of-bounds array accesses in `FILTER_INTRA()`.
-
-## Trigger Path
-
-1. `bad.c:453` `config_props`
-   - Sets up the filter context, validates w >= 3 and h >= 3 at line 467, stores `filter` function pointer at line 473
-
-2. `bad.c:536` `filter`
-   - Entry point called by FFmpeg framework during frame processing, invokes `ctx->internal->execute` to call `filter_slice` at line 557
-
-3. `bad.c:490` `filter_slice`
-   - Called via execute callback, computes potentially negative offset parameters at lines 510-514 based on conditional expressions, then calls `filter_intra` with these values
-
-4. `bad.c:443` `filter_intra`
-   - Receives potentially negative offset values (`prefs`, `mrefs`, `prefs3`, `mrefs3`), invokes the `FILTER_INTRA()` macro at line 450
-
-5. `bad.c:434` `FILTER_INTRA` (macro)
-   - Uses negative offset values as array indices: `cur[mrefs]`, `cur[prefs]`, `cur[mrefs3]`, `cur[prefs3]` at line 436, causing out-of-bounds memory access (CWE-787)
+The vulnerability is an out-of-bounds write in `FILTER_INTRA()` macro (line 434-441 in bad.c). The macro accesses `cur[mrefs]`, `cur[prefs]`, `cur[mrefs3]`, `cur[prefs3]` using array offsets computed from parameters that are derived from `td->w` (width) and `td->h` (height). However, there is a validation check at line 467 (`if (link->w

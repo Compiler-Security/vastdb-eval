@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": false,
-    "score": 3,
-    "reason": "Baseline incorrectly claims mxf_write_packet 'only logs an error but continues execution' after mxf_parse_prores_frame returns 0. In fact, the code at bad.c:1233-1236 executes return -1, aborting the call chain. The described trigger path through mxf_write_opatom_packet is unreachable after a failed parse, making the explanation fundamentally wrong about the control flow."
+    "correct": true,
+    "score": 6,
+    "reason": "Correctly identifies null pointer dereference root cause and source/sink locations (lines 612, 807). However, the trigger path is wrong: it describes the crash happening in a single call sequence (parse fails -> header writes -> dereference), but the actual CVE trigger (confirmed by the ffmpeg commit message) requires a second stream's packet (e.g., audio) to trigger header writing after the ProRes video parse has left codec_ul=NULL. The described single-stream flow cannot reach the crash because the error return prevents header writing."
   },
   "vastdb": {
     "correct": true,
-    "score": 7,
-    "reason": "VastDB correctly identifies the root cause (unconditional sc->codec_ul=NULL at line 612) and sink (dereference at line 807). It does not make the execution-continuation error. The trigger path is accurate and acknowledges both possible NULL-origins. Minor imprecision about 'garbage/uninitialized' data but overall a sound analysis."
+    "score": 6,
+    "reason": "Same as baseline - correctly identifies root cause and source/sink locations but has the same incorrect trigger path. Misses the critical multi-stream interaction where an audio packet triggers header writing after a failed ProRes video parse sets codec_ul=NULL. The commit message explicitly states 'the following audio packet would trigger writing the header... leading to segfaults'. Contains verbose irrelevant preamble about MLIR."
   }
 }

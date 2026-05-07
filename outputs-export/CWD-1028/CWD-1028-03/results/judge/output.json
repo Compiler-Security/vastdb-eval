@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": true,
+    "correct": false,
     "score": 5,
-    "reason": "Identifies the core bug (line 802 overflow check doesn't return) and CVE source/sink correctly, but trigger path is imprecise: lists bit_read_BB callers on the dat stream (lines 690,1000,1047,1048,1052) rather than the actual crash path via bit_read_CMC/str_dat chain. Misses the critical obj->has_strings guard mechanism, which is the key fix difference between bad/good."
+    "reason": "Correctly identifies obj_string_stream chain corruption (line 818) as root cause and names the bit_read_BB sink, but the trigger path is wrong: it references bit_read_H instead of bit_read_CMC, conflates `dat` with `str_dat`, and misses the key fix (str->byte/str->size restoration and obj->has_strings guard)."
   },
   "vastdb": {
-    "correct": true,
-    "score": 6,
-    "reason": "Identifies the core bug and has a more accurate trigger path that includes obj_string_stream and the str_dat corruption. Traces through the correct call chain (VIEWPORT -> obj_string_stream -> bit_advance_position(str,...) -> bit_read_BB in the string stream context). Still misses the obj->has_strings guard as the critical fix detail, but the path description is more coherent than baseline."
+    "correct": false,
+    "score": 2,
+    "reason": "Misses the core obj_string_stream state corruption entirely. Focuses generically on bit_advance_position overflow handling (line 787-802) which is only a minor contributor; the trigger path (bit_read_BB -> bit_advance_position) omits the actual chain-pointer corruption path through obj_string_stream and bit_read_CMC."
   }
 }

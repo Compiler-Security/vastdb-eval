@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 9,
-    "reason": "Accurately identifies CWE-787, correctly explains that asn1_type_get_int_oct returns the full length while copy is clamped by max_len, and precisely traces the two-call trigger path (probe with NULL → reuse returned length as max_len → overflow). Minor: locates vulnerability at line 218 (the call site) rather than line 185 (the function definition), but this matches the CVE metadata. No unsupported speculation."
+    "score": 7,
+    "reason": "Correctly identifies the OOB write in asn1_type_get_int_oct memcpy and the two-call pattern where second call passes unchecked length i as max_len. However, the explanation is truncated mid-sentence at step 4 and references OpenSSL file paths rather than the test case file."
   },
   "vastdb": {
     "correct": true,
     "score": 9,
-    "reason": "Accurately identifies the vulnerability in evp_cipher_get_asn1_aead_params, correctly describes the two-call pattern with data=NULL probe followed by oversized max_len reuse, and traces the complete trigger path from evp_cipher_asn1_to_param_ex through to the memcpy overflow. The description of the logic is precise and contains no factual errors or unsupported speculation."
+    "reason": "Accurately identifies root cause (max_len = i, the actual decoded length, unbounded by EVP_MAX_IV_LENGTH), the OOB write at memcpy when n>16, and traces the full trigger path from evp_cipher_asn1_to_param_ex through to asn1_type_get_int_oct with correct bad.c line references. More complete than baseline with no unsupported speculation."
   }
 }

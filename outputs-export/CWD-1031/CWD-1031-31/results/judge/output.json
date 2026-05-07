@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": false,
-    "score": 5,
-    "reason": "Correctly identifies the null-pointer-dereference sink at line 510 and the role of memset. But the trigger path is oversimplified — it claims memset-zeroed pointers are passed directly to fim_alert, ignoring that sk_decode_sum/sk_decode_extradata run between memset and the sink, which is essential to understanding when the pointers remain NULL."
+    "correct": true,
+    "score": 9,
+    "reason": "Accurately identifies memset zeroing pointer fields (md5 is char*) to NULL and the subsequent dereference at line 510 via !*newsum->md5. Correctly maps source (line 691-692) to sink (line 510). Concise and accurate, though lacks detail about sk_decode_extradata/sk_decode_sum paths that vastdb includes."
   },
   "vastdb": {
-    "correct": false,
-    "score": 4,
-    "reason": "Correctly identifies memset, the sink, and names sk_decode_sum as relevant. But it claims the trigger is sk_decode_sum returning -1 leaving newsum NULL, which does NOT reach the sink (goto exit_fail on line 862). This inaccurate trigger condition undermines the explanation."
+    "correct": true,
+    "score": 9,
+    "reason": "Accurately identifies the memset-to-NULL root cause and the dereference at line 510. Provides more detailed trigger path including sk_decode_extradata (line 724) and sk_decode_sum (line 731) as additional avenues for NULL pointers. No unsupported speculation."
   }
 }

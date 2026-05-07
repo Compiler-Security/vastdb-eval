@@ -1,23 +1,19 @@
+
+
 ## Root Cause
 
-The vulnerability is in the MXF (Material Exchange Format) muxer code. The `MXFStreamContext.codec_ul` pointer is set to NULL in `mxf_parse_prores_frame` (line 612) when the codec profile doesn't match any known Prores profiles in `mxf_prores_codec_uls`. Although the function returns 0 to indicate failure (lines 620-621), the caller `mxf_write_packet` only logs an error but continues execution. Later, when writing the codec descriptor via `mxf_write_cdci_desc` → `mxf_write_cdci_common`, line 807 dereferences `*sc->codec_ul` without checking if it's NULL, causing a null pointer dereference (CWE-476).
+The vulnerability is a null pointer dereference in `sc->codec_ul`. In `mxf_parse_prores_frame` (line 612), `sc->codec_ul` is explicitly set to NULL, and if no matching profile is found in the `mxf_prores_codec_uls` array, it remains NULL. Later, when `mxf_write_cdci_common` executes at line 807, it calls `avio_write(pb, *sc->codec_ul, 16)` without checking if `sc->codec_ul` is NULL, leading to dereferencing a null pointer.
 
 ## Trigger Path
 
 1. `bad.c:1204` `mxf_write_packet`
-   - Entry point for writing media packets; receives AVPacket and processes codec-specific parsing
+   - Entry point for writing packets; calls `mxf_parse_prores_frame` at line 1233 when codec is PRORES
 
-2. `bad.c:1232` `mxf_parse_prores_frame` called from `mxf_write_packet`
-   - Called when `st->codecpar->codec_id == AV_CODEC_ID_PRORES`; sets `sc->codec_ul = NULL` then iterates to find matching profile; if no match found, returns 0 but **does not prevent further processing** in caller
+2. `bad.c:603` `mxf_parse_prores_frame`
+   - Sets `sc->codec_ul = NULL` at line 612; if no matching profile found, leaves it NULL and returns 0 at line 621
 
-3. `bad.c:1259` `mxf_write_opatom_packet` called from `mxf_write_packet`
-   - Called when `s->oformat == &ff_mxf_opatom_muxer`; writes header (including metadata) on first call
+3. `bad.c:852` `mxf_write_cdci_desc`
+   - Called from `mxf_write_package` at line 1016 via function pointer during header metadata writing
 
-4. `bad.c:1175` `mxf_write_opatom_packet`
-   - Writes header partition at line 1183, then calls `mxf_write_package` at line 1015-1017 which invokes the descriptor writer
-
-5. `bad.c:852` `mxf_write_cdci_desc`
-   - Calls `mxf_write_cdci_common` to write the video codec descriptor
-
-6. `bad.c:807` `mxf_write_cdci_common`
-   - **Sink**: Dereferences `*sc->codec_ul` via `avio_write(pb, *sc->codec_ul, 16)` without null check; when `codec_ul` is NULL from failed Prores profile lookup, this triggers the null pointer dereference
+4. `bad.c:628` `mxf_write_cdci_common`
+   - Dereferences `sc->codec_ul` at line 807 via `avio_write(pb, *sc->codec_ul, 16)` without null check

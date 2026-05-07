@@ -1,5 +1,7 @@
 
-<invoke name="bash">
-<parameter name="command">ls -la /home/jialeiwang/mlir-dev/vastdb-eval/outputs/CWD-1016/CWD-1016-03/bad/</parameter>
-</invoke>
-</minimax:tool_call>
+
+Based on my analysis of the code, here's what I found:
+
+## Root Cause
+
+The vulnerability is an out-of-bounds write caused by incorrect bounds calculation in the `filter_slice` function. When `block_size` exceeds the image plane dimensions (`height` or `width`), the variables `block_pos_bottom` and `block_pos_right` become negative (`height - s->block_size` and `width - s->block_size`). In the inner loop at line 807, the condition `i

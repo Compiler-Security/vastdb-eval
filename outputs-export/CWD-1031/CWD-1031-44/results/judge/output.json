@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies NULL pointer dereference of text_value in output_TEXT. Correctly states text_value is only set for R_2000 to <R_2007, is NULL for R_2007+, and the trigger path through output_TEXT→htmlescape without NULL check is precise. No unsupported speculation."
+    "score": 9,
+    "reason": "Correctly identifies NULL return from bit_read_TV() on buffer overflow (bad.c:2202), assignment without NULL check at bad.c:2234, and dereference via htmlescape() at bad.c:1972. Trigger path is accurate end-to-end. Minor imprecision: says line 2202 is in bit_read_TV but that line is actually the check that leads to the NULL return at 2202."
   },
   "vastdb": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies NULL pointer dereference root cause, the version-dependent assignment of text_value, and the full trigger path from main→dwg_read_file→dwg_decode_TEXT→output_TEXT→htmlescape. Line references are precise. No unsupported speculation."
+    "score": 9,
+    "reason": "Correctly identifies the same root cause and trigger path. Precisely pinpoints bit_read_TV NULL return at line 2202, the unchecked assignment at line 2234, and the htmlescape dereference at line 1972. Trigger call chain (main -> output_SVG -> output_BLOCK_HEADER -> output_object -> output_TEXT) is accurate."
   }
 }

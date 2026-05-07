@@ -1,12 +1,14 @@
+
+
+Looking at the code:
+
 ## Root Cause
 
-The vulnerability is in `glutAddMenuEntry` (bad.c:273). A `SFG_MenuEntry` structure is allocated via `calloc()`. When `fgState.ActiveMenus` is non-zero (bad.c:276), the code calls `fgError()` (bad.c:277), which prints an error and exits the program (bad.c:265). The allocated memory is never freed before the program terminates, causing a memory leak (CWE-401).
+At line 273, a `SFG_MenuEntry` structure is allocated via `calloc()`. If `fgState.ActiveMenus` is non-zero (checked at line 276), the code calls `fgError()` at line 277 which eventually invokes `exit(1)` (line 265). The allocated `menuEntry` pointer is never freed before the program exits, causing a memory leak. This is the classic CWE-401 pattern: memory is allocated but lost when an error path terminates the program without proper cleanup.
 
 ## Trigger Path
 
 1. `bad.c:269` `glutAddMenuEntry`
-   - External/top-level API entry point. Receives menu label and value from caller.
-   - Allocates `menuEntry` via `calloc` at line 273
-   - Checks `fgState.ActiveMenus` at line 276; if true, calls `fgError()` which exits without freeing the allocated memory
-
-Note: This is a library API function. The test case contains only the library implementation, not the calling code. The function `glutAddMenuEntry` itself is the external entry point that would be invoked by user code to trigger this vulnerability.
+   - Caller invokes this function with a menu label and value
+   - Function allocates menuEntry at line 273, then checks ActiveMenus at line 276
+   - If ActiveMenus > 0, fgError is called at line 277 and the program exits without freeing the allocated memory

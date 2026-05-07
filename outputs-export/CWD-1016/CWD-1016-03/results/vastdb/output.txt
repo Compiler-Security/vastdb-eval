@@ -1,21 +1,19 @@
-Based on my VAST DB and source code analysis, here's what I found:
+
 
 ## Root Cause
 
-The vulnerability is an **off-by-one error in loop bounds** at line 807 in `bad.c`. The inner for loop condition `i < block_pos_right + block_step` allows the loop variable `i` to reach values exceeding the valid array bounds (`block_pos_right = width - block_size`). When `i` is passed to `block_matching` at line 812, it can cause an out-of-bounds write (CWE-787) when the function uses it to index into arrays. The `block_matching` function at line 505 is declared but never implemented in this test case - it's a forward declaration without a body, which is itself unusual and may indicate the sink code was meant to be there but is missing or obfuscated.
+The vulnerability stems from a missing bounds check when computing `block_pos_bottom` and `block_pos_right` in the `filter_slice` function. In the BAD version (line 792-793), these values are computed as `height - s->block_size` and `width - s->block_size` without the protective `FFMAX(0, ...)` wrapper that exists in the GOOD version (line 793-794). When video frame dimensions are smaller than the block size, these computed values become negative. Later in the loop (line 802-817), the indices `j` and `i` can propagate these negative values to `block_matching` (line 812) and subsequently to the block filtering functions that call `get_block_row`, causing out-of-bounds array access and write operations (`dst[j] = src[j]` pattern in filtering).
 
 ## Trigger Path
 
-1. `bad.c:822` `filter_frame`
-   - Entry point that sets up frame processing and calls filter_slice for each plane
+1. **bad.c:822** `filter_frame`
+   - Top-level entry that sets up frame processing and calls thread executor
 
-2. `bad.c:779` `filter_slice` 
-   - Contains the vulnerable loops. Variables `block_pos_right = width - block_size` and `block_step` are computed at lines 790-793
+2. **bad.c:779** `filter_slice`
+   - Computes `block_pos_bottom` and `block_pos_right` without `FFMAX(0, ...)` protection; iterates with j,i indices. Call: `block_matching(s, ref, ref_linesize, j, i, plane, jobnr)` at line 812
 
-3. `bad.c:807` for loop (inner)
-   - The vulnerability: `for (i = 0; i < block_pos_right + block_step; i += block_step)` - the `+ block_step` in the bound creates an off-by-one that allows i to exceed valid indices
+3. **bad.c:505** `block_matching` (forward declaration - VAST DB uid 1063)
+   - Called with potentially negative j,i values; performs block matching operations
 
-4. `bad.c:812` `block_matching(s, ref, ref_linesize, j, i, plane, jobnr)`
-   - Source anchor. The loop variable `i` (and similarly `j`) can have values that exceed array bounds when passed to this function
-
-Note: The explicit sink `dst[j] = src[j]` was not found in the code. The `block_matching` function (line 505) is only a forward declaration without implementation, suggesting the sink code may be intentionally omitted or the test case relies on undefined behavior from calling an unimplemented function.
+4. **bad.c:814** `s->block_filtering` (function pointer to `basic_block_filtering` at line 528)
+   - Calls `s->get_block_row(src, src_linesize, y + i, x, ...)` which lacks boundary validation, leading to out-of-bounds write operations on stack/heap buffers

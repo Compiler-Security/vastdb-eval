@@ -1,13 +1,13 @@
+
+
 ## Root Cause
 
-The vulnerability is in the function `DlgCreate8` at line 353-357. The variable `buf` is allocated via `vsmprintf(question, ap)` which internally calls `malloc`. When the condition `screen_display == NULL` evaluates to true (line 354), the function returns `NULL` at line 357 without first freeing the allocated `buf`. This causes a memory leak because the dynamically allocated memory is never released before the function exits. The bug is triggered specifically at the early return path when `screen_display` is NULL - in the normal execution path (lines 359-360), `buf` is correctly freed after converting to UTF-16, but this cleanup is skipped on the error path.
+The vulnerability is a **missing release of heap-allocated memory** (CWE-401). At line 353, the function `vsmprintf()` allocates a buffer via `malloc()` and stores the pointer in `buf`. When `screen_display` is NULL (line 354), the function returns NULL at line 357 without freeing this allocated buffer, causing a memory leak. The allocated memory becomes unsafe because the program loses the only reference to it, preventing any deallocation.
 
 ## Trigger Path
 
-This test case contains only the isolated vulnerable function `DlgCreate8` with no explicit external caller in the file. The function is declared `static`, meaning it would be called by some higher-level dialog API in the actual application. However, that caller code is not present in this test case.
+1. `bad.c:353` `vsmprintf(question, ap)`
+   - Allocates a heap buffer and assigns pointer to `buf`
 
-1. `bad.c:334` `DlgCreate8`
-   - Entry point: receives format string `question` and va_list `ap`, allocates `buf` via `vsmprintf` at line 353
-   - When `screen_display == NULL`, returns NULL at line 357 without freeing `buf`, triggering the memory leak
-
-The trigger condition requires `screen_display` to be NULL at the time `DlgCreate8` is called. The caller would need to invoke this function with a question string and argument list, with the global `screen_display` variable set to NULL.
+2. `bad.c:357` `return( NULL );`
+   - Returns NULL when `screen_display==NULL`, never freeing `buf`

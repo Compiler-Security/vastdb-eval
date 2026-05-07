@@ -1,20 +1,17 @@
-Based on my analysis, here's what I found:
+
 
 ## Root Cause
 
-The vulnerability is an out-of-bounds write in the `gaussian_blur` function. The code at lines 460-461 and 491-492 unconditionally executes 4 `memcpy(dst, src, w)` calls to copy edge rows, but when the height `h` is less than 4, these calls write past the end of the destination buffer. The source anchor `const int height = plane->height;` at line 521 reads the height value which is passed to `gaussian_blur`, and without proper bounds checking in `gaussian_blur`, the memcpy operations at lines 460-461 and 491-492 overflow the buffer when `h < 4`.
+The vulnerability is in the `gaussian_blur` function at bad.c:460. A `memcpy(dst, src, w)` is called where `w` is the image width from `plane->width`. The function uses `w` as the byte count without validating it against the actual buffer linesizes (`dst_linesize` and `src_linesize`). If `w` exceeds the allocated buffer linesize, the memcpy writes beyond the buffer bounds, causing an out-of-bounds write (CWE-787).
 
 ## Trigger Path
 
 1. `bad.c:495` `filter_frame`
-   - Entry point callback invoked by FFmpeg when processing a video frame
-   - Reads `plane->height` at line 521 (the source anchor)
+   - Entry point that processes AVFrame input for edge detection filtering.
+   - Extracts width and height from `plane->width` and `plane->height` (lines 520-521) without validating against actual buffer dimensions.
+   - Calls `gaussian_blur(ctx, width, height, tmpbuf, width, in->data[p], in->linesize[p])` at line 532 with width as both the image dimensions and as the linesize parameter.
 
-2. `bad.c:532` call to `gaussian_blur`
-   - Passes `width` and `height` from plane to gaussian_blur function
-   - Arguments: `gaussian_blur(ctx, width, height, tmpbuf, width, in->data[p], in->linesize[p])`
-
-3. `bad.c:460` `gaussian_blur` function
-   - Contains the vulnerable `memcpy(dst, src, w)` calls at lines 460-461 (before loop) and 491-492 (after loop)
-   - These execute unconditionally regardless of height value
-   - When `height < 4`, the loop at line 462 (`for (j = 2; j < h - 2; j++)`) doesn't iterate, but the 4 memcpy calls still execute, writing beyond buffer bounds
+2. `bad.c:454` `gaussian_blur`  
+   - Receives `w` (width), `h` (height), and uses `w` directly as `dst_linesize` when calling memcpy at line 460.
+   - The memcpy at line 460: `memcpy(dst, src, w)` uses `w` as the size without checking it against `dst_linesize` or `src_linesize`.
+   - Iterates correctly with `h` bounds in the for loop (line 462: `j

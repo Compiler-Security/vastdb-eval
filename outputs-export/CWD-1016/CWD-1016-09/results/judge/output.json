@@ -2,11 +2,11 @@
   "baseline": {
     "correct": false,
     "score": 2,
-    "reason": "Claims the root cause is a bpc/2-byte stride mismatch between coordinates array construction and deflate16's p1 access, which is wrong: bpc=2 for 16-bit formats, matching the 2-byte stride. Does not identify the real fix (if(width>1) guard) or the actual issue (calls with invalid width/coordinates when width<=1). Trigger path is correct but root cause is fundamentally misidentified."
+    "reason": "Misidentifies root cause as a generic buffer-size-vs-width mismatch. The actual fix is `if (width > 1)` guarding middle/right-edge filter calls when width < 2; pointer arithmetic `dst + (width - 1) * bpc` and `src + (width - 2) * bpc` underflows for width=0 or 1, not a mismatch between input buffer allocation and planewidth."
   },
   "vastdb": {
     "correct": false,
-    "score": 3,
-    "reason": "Claims the root cause is dst+1*bpc offset causing writes to overflow the buffer by 2 bytes, which is wrong because the width parameter passed is width-2 (not the full width), keeping the total write span within the allocated buffer. Does not identify the real fix (if(width>1) guard). Trigger path is correctly traced, and location (deflate16, line 343) is correct, but the overflow mechanism described is based on misreading the code."
+    "score": 2,
+    "reason": "Also misattributes the cause to stride being smaller than width, rather than the missing `if (width > 1)` guard. Additionally truncated/incomplete (ends mid-sentence), so only a partial explanation is available. Fails to identify the underflow of pointer arithmetic when width < 2."
   }
 }

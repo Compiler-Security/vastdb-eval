@@ -1,11 +1,5 @@
+
+
 ## Root Cause
 
-The vulnerability is in the `kek_unwrap_key` function. At line 254, `*outlen` is set to `(size_t)tmp[0]`, where `tmp[0]` is a single-byte value from decrypted data (0-255). The check at line 250 (`inlen < (size_t)(tmp[0] - 4)`) only verifies that `tmp[0] <= inlen + 4`, but does NOT ensure `tmp[0] <= inlen`. Since `tmp` is allocated with size `inlen` (line 225), but `*outlen` can be larger than `inlen`, the `memcpy(out, tmp + 4, *outlen)` at line 255 writes beyond the bounds of the `out` buffer (allocated as `OPENSSL_malloc(pwri->encryptedKey->length)` = `inlen`).
-
-## Trigger Path
-
-1. `bad.c:263` `ossl_cms_RecipientInfo_pwri_crypt`
-   - Receives CMS ContentInfo and RecipientInfo; allocates `key` buffer with size `pwri->encryptedKey->length` (line 352); calls `kek_unwrap_key` with encrypted key data.
-
-2. `bad.c:206` `kek_unwrap_key`
-   - Receives `out` pointer (to `key` buffer), `outlen` pointer, encrypted `in` data, and `inlen` (equals `pwri->encryptedKey->length`). Allocates `tmp` buffer of size `inlen` (line 225), decrypts data into `tmp`, reads length from `tmp[0]` at line 254, then performs unsafe `memcpy` at line 255 using controlled `*outlen` without proper bounds validation.
+The vulnerability is an out-of-bounds write in the `kek_unwrap_key` function at line 255. The attacker controls the length value `tmp[0]` from the decrypted key data, which is directly used as `*outlen` without validating it fits the destination buffer. The code only checks `in

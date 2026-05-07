@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 5,
-    "reason": "Correctly identifies UAF (CWE-416), the free at line 788 (_bfd_coff_free_symbols), and the sink at line 979 (strcmp in bfd_hash_lookup). However, it wrongly claims 'the direct chain isn't fully exercised in this snippet' (it is), is vague about the trigger path, and misses the critical code location (_bfd_XXi_swap_sym_in) where the dangling pointer originates from a conditional copy that fails when name points into the string table."
+    "score": 8,
+    "reason": "Correctly identifies UAF root cause: string table pointer stored directly in hash entry, freed by _bfd_coff_free_symbols, then dereferenced via strcmp in bfd_hash_lookup. Trigger path is logically sound though lacks the specific function _bfd_XXi_swap_sym_in where the dangling pointer is captured. Acknowledges incomplete stack trace which is fair."
   },
   "vastdb": {
     "correct": true,
-    "score": 7,
-    "reason": "Accurately identifies UAF with a specific, correct trigger path (display_file -> pe_bfd_object_p -> coff_real_object_p -> _bfd_coff_free_symbols -> bfd_get_section_by_name -> bfd_hash_lookup strcmp). Correctly notes hash entries store pointers derived from the string table and identifies the source (line 788) and sink (line 979). Minor inaccuracy: conflates make_a_section_from_file (which does copy) with the actual vulnerable path in _bfd_XXi_swap_sym_in, but overall much more precise than baseline."
+    "score": 8,
+    "reason": "Correctly identifies UAF root cause with the same core mechanism. Provides more specific entry point (pe_ILF_object_p/pe_bfd_object_p) and correctly traces through _bfd_coff_free_symbols to bfd_hash_lookup strcmp. Minor imprecision in 'after the BFD is closed' phrasing, and also misses _bfd_XXi_swap_sym_in as the setup location, but overall accurate."
   }
 }

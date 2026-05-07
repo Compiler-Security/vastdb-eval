@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 9,
-    "reason": "Accurately identifies UAF (CWE-416): ff_free_stream called when mime=='logical-fileinfo' but returns success leaving caller unaware. Trigger path correctly traced from rm_read_header->rm_read_multi->ff_rm_read_mdpr_codecdata (sink at line 638, free at line 640). No unsupported speculation. Slightly less detailed on line numbers."
+    "score": 8,
+    "reason": "Correctly identifies UAF in ff_rm_read_mdpr_codecdata at line 640 triggered by 'logical-fileinfo' mime, and traces the path through rm_read_header→rm_read_multi→ff_rm_read_mdpr_codecdata. Minor inaccuracy: claims freed stream remains in s->streams array (ff_free_stream typically removes it). Slightly vague about post-free access."
   },
   "vastdb": {
     "correct": true,
-    "score": 9,
-    "reason": "Equally accurate identification of UAF, same root cause and trigger path. Provides more granular line-number trace (831, 843, 748, 638, 640) across the full call chain. Correctly notes caller is unaware of the freed stream. No unsupported speculation."
+    "score": 8,
+    "reason": "Correctly identifies UAF (CWE-416) at line 640, provides detailed line-numbered trigger path from rm_read_header through rm_read_multi to ff_rm_read_mdpr_codecdata. Minor imprecision: step 7 claims rm_read_header 'uses st object after rm_read_multi returns' without specifying what subsequent access occurs."
   }
 }

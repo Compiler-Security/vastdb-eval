@@ -2,11 +2,11 @@
   "baseline": {
     "correct": true,
     "score": 9,
-    "reason": "Correctly identifies CWE-401 memory leak in glutAddMenuEntry. Accurately traces source (calloc at line 273) through error path (fgState.ActiveMenus check) to sink (exit(1) in fgError). No unsupported speculation. Minor omission: doesn't mention the freeglut_return_if_fail early-return leak at line 275, which is also fixed by moving allocation after both guards."
+    "reason": "Correctly identifies calloc-before-guard root cause and the ActiveMenus/fgError/exit trigger path. Minor omission: doesn't mention the freeglut_return_if_fail(CurrentMenu) path as another leak route, but the core vulnerability is accurately described with no speculation."
   },
   "vastdb": {
     "correct": true,
     "score": 9,
-    "reason": "Correctly identifies the same CWE-401 vulnerability and trigger path as the baseline. Accurately traces allocation, condition check, fgError call, and exit(1) termination. Slightly more verbose but factually precise. Same minor omission regarding the freeglut_return_if_fail early-return path at line 275."
+    "reason": "Correctly identifies the same root cause (calloc before ActiveMenus guard) and trigger path. Notes lines 279-283 are skipped, which is precise. No unsupported speculation. Slightly less explicit about exit(1) details but still accurate."
   }
 }

@@ -2,11 +2,11 @@
   "baseline": {
     "correct": true,
     "score": 9,
-    "reason": "Accurately identifies the memory leak in streamGetEdgeID due to missing streamIteratorStop call. Correctly traces the allocation path through streamIteratorStart → raxStart → raxStackInit and notes that streamIteratorGetID may trigger heap allocation in raxStack. No speculation or inaccuracies."
+    "reason": "Correctly identifies CWE-401 memory leak in streamGetEdgeID() where streamIteratorStop() is not called before return. Accurately traces the data flow: raxStack dynamic allocation via raxSeek() overflow and the missing cleanup. Clear trigger path without speculation."
   },
   "vastdb": {
     "correct": true,
-    "score": 8,
-    "reason": "Accurately identifies the memory leak in streamGetEdgeID and the missing streamIteratorStop call. Correctly identifies source (line 423) and sink (line 430). Slightly less detail on the heap allocation mechanism in raxStack but still fully correct with no speculation."
+    "score": 9,
+    "reason": "Correctly identifies CWE-401 memory leak in streamGetEdgeID() with accurate root cause (missing streamIteratorStop()). Properly explains the raxStack heap allocation via realloc on overflow and that the stack-allocated iterator goes out of scope without cleanup. Accurate trigger path."
   }
 }

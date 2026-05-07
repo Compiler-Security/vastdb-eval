@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": false,
-    "score": 5,
-    "reason": "Correctly identifies the NULL propagation mechanism from PAT gather_section(ses=NULL) through section_complete into packet.stream, but incorrectly identifies the crash location as the PCR handler (line 1055). The fix is in the ID3 handler (line 1196), not the PCR handler. The PCR handler has a gf_fatal_assert(pck->stream) guard at line 1044, making it a controlled assertion failure, not a raw NULL dereference as described."
+    "correct": true,
+    "score": 8,
+    "reason": "Correctly identifies root cause: NULL ses passed to gf_m2ts_gather_section propagates to pck.stream=NULL in gf_m2ts_section_complete event dispatch, then dereferenced in m2tsdmx_on_event. Minor inaccuracy: labels event type 24 as GF_M2TS_EVT_SL_PCK (should be GF_M2TS_EVT_CAT_FOUND per local enum, though this may match the original GPAC version). Trigger path is accurate."
   },
   "vastdb": {
-    "correct": false,
-    "score": 7,
-    "reason": "Correctly identifies the source (PAT gather_section with NULL ses), the propagation through section_complete setting pck.stream=NULL, and correctly identifies the ID3 handler (line 1196) as a vulnerable sink matching the test case fix location. However, claims event 24 (CAT_FOUND) from section_complete reaches the ID3 handler, which is wrong — event 24 has no case handler and falls through silently. Also incorrectly includes SCTE35 (line 1232) which is unfixed in this test case."
+    "correct": true,
+    "score": 8,
+    "reason": "Same analysis as baseline, essentially identical in content. Correctly identifies NULL ses propagation chain from gf_m2ts_gather_section through gf_m2ts_section_complete to the NULL pointer dereference in the event handler. Minor event-type labeling inaccuracy, but root cause and trigger path are both accurate."
   }
 }

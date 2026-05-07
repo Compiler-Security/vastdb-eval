@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": false,
-    "score": 5,
-    "reason": "Correctly identifies the field mismatch (stts_count used as guard for tts_data). However, speculates incorrectly about 'tts_count having a non-zero value from uninitialized memory' — the actual trigger is unsigned integer underflow in `tts_count - 1` when tts_count==0, which wraps to UINT_MAX and causes the loop to execute on NULL tts_data at line 860. The trigger path explanation is inaccurate."
+    "correct": true,
+    "score": 8,
+    "reason": "Correctly identifies NULL pointer dereference on `tts_data` (uninitialized, remains NULL) while `stts_data` is populated by `mov_read_stts`. Accurately describes the trigger path and locations (lines 860-861 in `mov_read_trak`). Misses the unsigned integer underflow detail: `tts_count == 0` causes `tts_count - 1` to wrap to `UINT_MAX`, making the loop execute and dereference NULL `tts_data`. But the core analysis is sound."
   },
   "vastdb": {
-    "correct": false,
-    "score": 6,
-    "reason": "Correctly identifies the field mismatch (stts_count/tts_data) and source/sink locations. However, misses the key trigger mechanism — unsigned underflow of `tts_count - 1` when tts_count==0 at line 860 — and simply states 'tts_data may remain NULL' without explaining how the loop condition actually passes. Incomplete trigger path analysis."
+    "correct": true,
+    "score": 8,
+    "reason": "Correctly identifies the NULL pointer dereference as a field-name confusion (accessing `tts_data` instead of `stts_data`). Accurately describes the struct layout, the `av_mallocz` initialization to NULL, and the trigger path through `mov_read_trak` → `mov_read_stts` → loop sink at lines 861/899. Also misses the unsigned integer underflow mechanism (`tts_count - 1` wrapping), but correctly covers the root cause and locations."
   }
 }

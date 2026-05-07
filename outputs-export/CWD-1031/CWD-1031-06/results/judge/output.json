@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": true,
-    "score": 9,
-    "reason": "Correctly identifies the missing NULL-check after av_malloc() at line 682, the sink at line 527 in render_slice, and the trigger condition (out-of-bounds motion vectors requiring edge emulation). Concise and accurate. Minor omission: does not explicitly mention the VP4 sink at line 513."
+    "correct": false,
+    "score": 3,
+    "reason": "Identifies the correct vulnerability class (NULL deref) and location, but the trigger mechanism is wrong. The baseline speculates that linesize[0]==0 causing av_malloc(0) returns NULL as the trigger, which is unsupported — the actual fix addresses av_malloc failure from memory exhaustion (not zero-size allocation). The 'uninitialized linesize' claim is also incorrect."
   },
   "vastdb": {
     "correct": true,
-    "score": 10,
-    "reason": "Thoroughly and accurately covers all aspects: the unchecked allocation at line 681-682, both sinks at lines 513 (VP4) and 527 (standard MC), the precise edge-emulation trigger conditions, and the full call chain from vp3_decode_frame through render_slice. No unsupported speculation."
+    "score": 9,
+    "reason": "Accurately identifies the NULL pointer dereference (CWE-476), correct locations (allocation at lines 681-682, sinks at 513/527), and the real root cause: av_malloc() returning NULL on allocation failure, with no NULL check before dereference. The trigger path is correctly described with no unsupported speculation."
   }
 }

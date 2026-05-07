@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 10,
-    "reason": "Correctly identifies the missing av_freep(&s->xover) in uninit as the root cause, accurately describing the allocation in config_input at line 418 and the failure to free in uninit. The trigger path is accurate and complete with no unsupported speculation."
+    "score": 9,
+    "reason": "Accurately identifies the missing av_freep(&s->xover) in uninit() as root cause, correctly pinpoints the allocation at config_input line 418, and provides the correct filter lifecycle trigger path (init → config_input → uninit). No unsupported speculation."
   },
   "vastdb": {
     "correct": true,
-    "score": 10,
-    "reason": "Correctly identifies the same missing av_freep(&s->xover) in uninit as the root cause, with accurate step-by-step trigger path showing allocation in config_input and missing free in uninit. No unsupported speculation."
+    "score": 9,
+    "reason": "Accurately identifies the same missing free of s->xover in uninit(), the correct allocation location in config_input line 418, and the correct trigger path. Honestly acknowledges inability to establish external call chain via VAST DB. No unsupported speculation."
   }
 }

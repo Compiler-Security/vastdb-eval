@@ -2,11 +2,11 @@
   "baseline": {
     "correct": true,
     "score": 10,
-    "reason": "Accurately identifies CWE-476 NULL pointer dereference. Correctly pinpoints the root cause: cJSON_GetObjectItem at line 253 can return NULL when 'timestamp' is missing, and line 258 dereferences scan_time->valuestring without a NULL check. Trigger path is precise and complete (decode_hotfix -> cJSON_GetObjectItem -> get_object_item returning NULL -> dereference at line 258). No unsupported speculation."
+    "reason": "Accurately identifies the NULL pointer dereference at decode_hotfix line 258 (scan_time->valuestring) caused by cJSON_GetObjectItem returning NULL when 'timestamp' is missing from JSON input. Trigger path is correctly traced from line 253 to line 258. No unsupported speculation."
   },
   "vastdb": {
     "correct": true,
     "score": 10,
-    "reason": "Accurately identifies CWE-476 NULL pointer dereference with the same correct root cause and trigger path as baseline. Correctly pinpoints line 253 as the source (cJSON_GetObjectItem potentially returning NULL) and line 258 as the sink (scan_time->valuestring dereference without NULL check). Trigger path is complete. No unsupported speculation."
+    "reason": "Accurately identifies the same NULL pointer dereference vulnerability with identical root cause and trigger path analysis. Correctly pinpoints missing NULL check on cJSON_GetObjectItem result and dereference at scan_time->valuestring. No unsupported speculation."
   }
 }

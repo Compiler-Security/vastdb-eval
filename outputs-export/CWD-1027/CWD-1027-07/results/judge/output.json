@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies the memory leak: allocation at line 407 via av_iamf_param_definition_alloc, the missing av_free(param) before the return AVERROR_INVALIDDATA at line 449, and the exact condition (!mode && !constant_subblock_duration && total_duration != duration). Concise, no speculation."
+    "score": 6,
+    "reason": "Correctly identifies the CWE-401 memory leak root cause: missing av_free(param) at the line-449 error return in param_parse. However, includes substantial unsupported speculation about a caller call chain (iamf_read_header, ff_iamfdec_read_descriptors, etc.) that does not exist in this self-contained fragment, inventing details from a different test case."
   },
   "vastdb": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies CWE-401, the allocation point, the missing av_free at line 449, the exact trigger condition, and correctly notes other error paths handle the free. The remark about the static function and higher-level callers is factual, not speculation."
+    "score": 9,
+    "reason": "Accurately identifies the CWE-401 memory leak root cause, pinpoints allocation at line 407 and leak at line 449, correctly notes that other error paths (lines 442, 462, 476) do call av_free(param) while this one does not. Honestly acknowledges inability to prove a full caller stack rather than inventing one. Clean, evidence-grounded explanation with no unsupported speculation."
   }
 }

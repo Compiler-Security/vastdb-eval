@@ -1,14 +1,27 @@
+
+
 ## Root Cause
 
-The vulnerability is an out-of-bounds write in `deflate16` at line 343: `dst[x] = FFMAX(FFMIN(sum / 8, AV_RN16A(&p1[2 * x])), limit);`. The function receives `p1` (source buffer) and `width` from the caller, but the coordinates array construction at lines 375-385 in `filter_slice` uses byte offsets based on `bpc` (bytes per component) and `stride`, while the inner loop in `deflate16` accesses `p1[2*x]` using a fixed stride of 2 bytes per pixel. When `bpc > 1` (e.g., 16-bit images), this mismatch causes the read pointer to exceed the bounds of the source buffer, leading to an out-of-bounds write to `dst[x]` based on garbage data from invalid memory.
+The vulnerability is an out-of-bounds write (CWE-787) in the `deflate16` function at line 339/343. The `width` parameter passed from `filter_slice` to the filter function is used to index into the source buffer `p1` with the formula `2 * x` where `x` ranges from 0 to `width-1`. When `p1` is derived from the input frame's data buffer in `filter_slice` (line 364), there is no bounds verification that the input buffer is actually large enough to accommodate the `2 * width` accesses performed in the inner loop. If the input frame `in` has a smaller allocated buffer than expected, or if `width` is crafted to exceed the buffer boundaries, the read at line 339 (`AV_RN16A(&p1[2 * x])`) and especially the write at line 343 (`dst[x] = ...`) will write beyond the allocated buffer, causing an out-of-bounds write vulnerability.
 
 ## Trigger Path
 
 1. `bad.c:399` `filter_frame`
-   - Takes input frame `in` from `inlink`, creates output frame `out`, sets `td.in = in` at line 414, then calls `ctx->internal->execute()` to invoke `filter_slice`.
+   - Entry point that receives the external input frame `in` from the filter link
+   - Stores frame in ThreadData: `td.in = in;` (line 414)
 
-2. `bad.c:347` `filter_slice`
-   - Receives `ThreadData *td` containing `in` and `out` frames. Extracts plane dimensions from `s->planewidth[plane]` and constructs `coordinates` arrays at lines 375-385 using byte offsets. Calls `s->filter()` (which is `deflate16`) three times with different width parameters (1, width-2, 1) at lines 387-389.
+2. `bad.c:416` `filter_frame` → `ctx->internal->execute`
+   - Calls the threaded filter_slice with the ThreadData containing both input and output frames
+   - Control and data (including the unvalidated dimensions) transfer to the worker function
 
-3. `bad.c:330` `deflate16`
-   - Receives `p1` (source buffer), `width`, and `coordinates` array. The loop at line 337 iterates `x` from 0 to `width`. At line 339, it reads `AV_RN16A(&p1[2 * x])` using a 2-byte stride regardless of actual bytes-per-component, and at line 343 writes to `dst[x]` using that same index, causing out-of-bounds access when `width` or the coordinate calculations exceed buffer bounds.
+3. `bad.c:347` `filter_slice`
+   - Receives `ThreadData *td` containing `AVFrame *in` and `AVFrame *out`
+   - Computes `width = s->planewidth[plane]` (line 361) from untrusted context configuration
+   - Derives `src` pointer from `in->data[plane]` (line 364) without validating buffer size against width
+   - Calls `s->filter(dst, src, width, ...)` (lines 387-389) with the potentially mismatched width
+
+4. `bad.c:330` `filter_slice` → `deflate16`
+   - The vulnerable filter function receives `width` as a trust boundary crossing parameter
+   - Iterates `x` from 0 to `width-1` (line 337) accessing `p1[2 * x]` (line 339)
+   - Writes to `dst[x]` (line 343) using unvalidated width-derived indexing
+   - This is the sink location where out-of-bounds write occurs

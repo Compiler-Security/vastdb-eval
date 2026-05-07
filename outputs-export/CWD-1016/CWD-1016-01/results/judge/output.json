@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 9,
-    "reason": "Accurately identifies the root cause (dataWindow ymin vs displayWindow buffer sizing mismatch leading to out-of-bounds memset), the vulnerability location (decode_header at line 646 for source, decode_frame at lines 947-952 for sink), and the full data-flow/control-flow trigger path. The INT_MAX example is slightly speculative but not misleading."
+    "score": 7,
+    "reason": "Correctly identifies the root cause (ymin read from untrusted stream without validation against buffer dimensions), source line 646, and that existing checks at 650-655/888-892 are insufficient. Output truncated mid-sentence, so the full trigger path is incomplete, but what's present is accurate."
   },
   "vastdb": {
     "correct": true,
-    "score": 9,
-    "reason": "Accurately identifies the root cause (ymin from dataWindow exceeds displayWindow height, causing OOB memset), with a precise trigger path broken into 5 clear steps covering source (line 646), allocation (lines 894/917), and sink (lines 947-952). The condition 'ymin > s->h' precisely captures the vulnerability. No unsupported speculation."
+    "score": 7,
+    "reason": "Correctly identifies the OOB write, the source (ymin parsed via bytestream2_get_le32 at lines 645-646), and the sink (memset at line 950 in a loop bound by s->ymin). Output truncated mid-sentence, so the full explanation is incomplete, but the present content is accurate."
   }
 }

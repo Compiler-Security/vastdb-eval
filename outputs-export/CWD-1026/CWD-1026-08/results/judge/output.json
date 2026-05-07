@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies the UAF: sip_subscribe_remove (line 448) calls sip_subscribe_release which frees subscribe at line 389, then line 449 accesses subscribe->ref after free. Trigger path is correct and complete with accurate line numbers. No unsupported speculation."
+    "score": 9,
+    "reason": "Correctly identifies the UAF root cause: sip_subscribe_remove frees subscribe, then assert(1 == subscribe->ref) accesses freed memory. Trigger path is accurate. Misses explicitly noting the 'Expires: 0' trigger condition that gates this code path, but is otherwise precise."
   },
   "vastdb": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies the UAF root cause with the same trigger path as baseline. Correctly traces ref-count decrement (line 384), free (line 389), and post-free access (line 449). No unsupported speculation."
+    "score": 9,
+    "reason": "Correctly identifies the UAF root cause and traces the full trigger path from sip_uac_subscribe_onreply through sip_subscribe_remove to free(subscribe) followed by the dangling ref access at line 449. Also correctly notes the 'Expires: 0' header trigger. Same minor omission as baseline (no mention of the double-free at line 452), but fully accurate."
   }
 }

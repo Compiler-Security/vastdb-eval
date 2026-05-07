@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": false,
-    "score": 6,
-    "reason": "Correctly traces the NULL dereference call chain from var->name assignment through to bfd_hash_hash, but misidentifies root cause: attributes the NULL to read_string functions returning NULL rather than the actual missing is_str_attr(attr.form) guard that filters non-string forms for DW_AT_name on variables."
+    "score": 3,
+    "reason": "Baseline correctly identifies the crash site (bfd_hash_hash dereferencing var->name) and the missing check at line 985, but incorrectly frames the root cause as a simple 'NULL string from failed reads' scenario. The actual root cause is the missing is_str_attr form-type check: when DW_AT_name uses a non-string DWARF form (e.g. DW_FORM_data1), the C union populates attr.u.val not attr.u.str, causing attr.u.str to contain garbage/NULL. Baseline's speculation about 'string reading functions fail or return NULL' is misleading and misses the union type-confusion mechanism."
   },
   "vastdb": {
-    "correct": false,
-    "score": 6,
-    "reason": "Same fundamental issue as baseline: correctly identifies the vulnerability type, crash location, and data-flow path, but misattributes why attr.u.str can be NULL — blames invalid/missing string data rather than the actual root cause (missing is_str_attr form check before union field access)."
+    "correct": true,
+    "score": 10,
+    "reason": "VAST DB accurately identifies the root cause: missing is_str_attr check for variables at line 985, allowing non-string DWARF forms (e.g. DW_FORM_data1) to be interpreted as string pointers through the C union (attr.u.val/attr.u.str memory sharing). Correctly contrasts with the func path where is_str_attr is present, traces the full data-flow from scan_unit_for_symbols through comp_unit_hash_info/insert_info_hash_table/bfd_hash_lookup to the NULL dereference in bfd_hash_hash, and contains no unsupported speculation."
   }
 }

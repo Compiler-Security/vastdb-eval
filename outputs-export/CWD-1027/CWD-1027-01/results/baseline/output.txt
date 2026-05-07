@@ -1,14 +1,18 @@
+
+
 ## Root Cause
 
-The vulnerability is a memory leak in the `AudioCrossoverContext` filter context. At line 418 in `config_input`, memory is dynamically allocated for `s->xover` via `av_calloc(inlink->channels, sizeof(*s->xover))`. However, in the `uninit` function (lines 513-521), only `s->splits` and output pad names are freed—`s->xover` is never released. When the filter is unloaded/destroyed, the allocated memory for the crossover channels is never freed, causing a memory leak (CWE-401).
+The vulnerability is in `AudioCrossoverContext` where `s->xover` is allocated via `av_calloc` at line 418 in `config_input`, but the `uninit` function (lines 513-522) only frees `s->splits` (line 518) and never frees `s->xover`. When the filter is destroyed, the memory allocated for `s->xover` is not released, causing a memory leak.
 
 ## Trigger Path
 
-1. `bad.c:459` `init`
-   - Initializes the filter, allocates `splits`, and creates output pads.
+The full trigger path cannot be determined from this source file alone, as it requires FFmpeg's filter graph infrastructure to invoke the filter lifecycle functions. However, the code shows:
+
+1. `bad.c:459` `init` 
+   - Initializes filter, allocates `s->splits`
 
 2. `bad.c:411` `config_input`
-   - Called when the filter receives input; allocates `s->xover` via `av_calloc` at line 418.
+   - Called during filter configuration, allocates `s->xover` at line 418
 
 3. `bad.c:513` `uninit`
-   - Called when filter is unloaded/destroyed; frees `s->splits` and pad names but **fails to free `s->xover`**, triggering the memory leak.
+   - Called when filter is destroyed, frees `s->splits` but NOT `s->xover` - this is where the leak occurs

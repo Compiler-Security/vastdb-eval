@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 9,
-    "reason": "Accurately describes the root cause (dnxhd_find_frame_end returning negative dctx->remaining) and the trigger path (negative next value reaching ff_combine_frame, bypassing buffer allocation, causing NULL deref at pc->buffer[pc->last_index+next]). Minor imprecision: says pc->buffer 'remains NULL' unconditionally, but it is the uninitialized/NULL state on first call that matters."
+    "score": 7,
+    "reason": "Correctly identifies that negative dctx->remaining is returned (line 359) and flows as next into ff_combine_frame (line 405) at loop line 284. Truncated; does not explicitly mention NULL pointer dereference or that pc->buffer defaults to NULL, which is the actual crash mechanism."
   },
   "vastdb": {
     "correct": true,
-    "score": 9,
-    "reason": "Correctly identifies the same root cause (negative return from dnxhd_find_frame_end when both frame-size lookups fail) and trigger flow to ff_combine_frame line 285. Slightly more detailed step-by-step path. Same minor imprecision as baseline about pc->buffer being 'never initialized' rather than NULL on first call."
+    "score": 8,
+    "reason": "Correctly identifies CWE-476 NULL pointer dereference, states buffer is uninitialized (NULL), traces 0/negative remaining return flowing as next to ff_combine_frame. Slightly more complete and precise than baseline, though also truncated at the same point."
   }
 }

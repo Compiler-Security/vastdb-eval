@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 9,
-    "reason": "Correctly identifies the root cause (missing NULL/type validation for pbkdf2_param->salt at line 421) and trigger path (PKCS12_verify_mac → pkcs12_gen_mac → PBMAC1_PBKDF2_HMAC → null deref via pbkdf2_salt->data/length at line 436). Accurate and well-supported."
+    "score": 8,
+    "reason": "Correctly identifies the root cause (missing NULL check on pbkdf2_param->salt at line 421) and the trigger path. Slightly imprecise about crash location — says crash occurs at line 436 (pbkdf2_salt->data) when the first NULL dereference actually occurs at line 421 (pbkdf2_param->salt->value.octet_string). This is a minor factual inaccuracy but does not undermine the overall root cause analysis."
   },
   "vastdb": {
     "correct": true,
-    "score": 9,
-    "reason": "Correctly identifies the root cause (missing NULL check on pbkdf2_param->salt and its value.octet_string at line 421) and trigger path (same call chain ending at pkcs5_PBKDF2_HMAC dereferencing pbkdf2_salt->data/length). Accurate and covers the same essential mechanism."
+    "score": 10,
+    "reason": "Accurately pinpoints the root cause (NULL dereference on pbkdf2_param->salt at line 421, before salt->value.octet_string is accessed). Correctly identifies that the crash occurs at line 421 as the first dereference, not at line 436. Trigger path is complete and precise. No unsupported speculation."
   }
 }

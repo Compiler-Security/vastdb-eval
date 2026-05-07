@@ -2,11 +2,11 @@
   "baseline": {
     "correct": true,
     "score": 9,
-    "reason": "Accurately identifies CWE-476 null pointer dereference with correct root cause (memset in bfd_section_hash_newfunc zeros output_section) and sink (sym->section->output_section->owner at line 1390 in ignore_section_sym). Trigger path is correctly traced through the call chain. Minor omission: doesn't detail how newly created sections reach ignore_section_sym via section creation path, but the core mechanism is fully accurate."
+    "reason": "Correctly identifies CWE-476 NULL pointer dereference at ignore_section_sym line 1390 (unchecked output_section dereference). Accurately traces the trigger path from memset-zeroed output_section in bfd_section_hash_newfunc through section creation to the crash. No unsupported speculation."
   },
   "vastdb": {
     "correct": true,
     "score": 9,
-    "reason": "Accurately identifies CWE-476 null pointer dereference with correct root cause (memset zeroing output_section in bfd_section_hash_newfunc at line 2938) and sink (line 1390 in ignore_section_sym). Provides slightly more detail by connecting through bfd_make_section_anyway_with_flags and section_hash_lookup. Trigger path is correctly traced. A valid caveat about VAST DB query limitations is noted but does not affect accuracy."
+    "reason": "Correctly identifies the same root cause and NULL dereference. Provides a slightly more detailed trigger path including elf_slurp_symbol_table. Accurate on source (memset at line 2938) and sink (ignore_section_sym line 1390). No unsupported speculation."
   }
 }

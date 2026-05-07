@@ -1,11 +1,18 @@
+
+
+Looking at the code, I can now identify the vulnerability:
+
 ## Root Cause
 
-The vulnerability exists in the `gaussian_blur` function where `memcpy(dst, src, w)` is called with `w` (the pixel width) as the copy size, but the pointers are then advanced by `dst_linesize` and `src_linesize`, which may differ from `w`. In video processing, `linesize` often exceeds width due to memory alignment padding. When `in->linesize[p]` (passed as `src_linesize`) is larger than `width`, the memcpy reads beyond the source buffer's row boundary, and subsequent iterations copy from incorrect memory positions, causing an out-of-bounds write.
+The vulnerability is in the `gaussian_blur` function at lines 460-461 and 491-492 where `memcpy` uses `w` (the `width` parameter from `plane->width`) as the copy size. However, the actual source data comes from an `AVFrame` with `in->linesize[p]` as the source stride. When `in->linesize[p]` is larger than `width` (which can happen due to memory alignment), using `w` as the copy size copies only `width` bytes, but the pointer arithmetic `src += src_linesize` advances by the full `in->linesize[p]`. After several rows, `src` points beyond the valid image data region, yet subsequent iterations (especially the inner loop processing at lines 467-483) read from arbitrary memory locations outside the image buffer, causing an out-of-bounds read that can corrupt memory or leak data. The root cause is a mismatch between the copy size (`w` = `width`) and the actual source stride (`src_linesize` = `in->linesize[p]`).
 
 ## Trigger Path
 
-1. `bad.c:495` `filter_frame`
-   - Gets plane dimensions from `plane->width` and `plane->height` (lines 520-521), then calls `gaussian_blur` passing `width` and `in->linesize[p]` as separate parameters (lines 532-534).
+1. `bad.c:495` `filter_frame(AVFilterLink *inlink, AVFrame *in)`
+   - Receives the input video frame `in` from the filter pipeline, extracts plane-specific data like `in->data[p]` and `in->linesize[p]` which may have linesize larger than width.
 
-2. `bad.c:454` `gaussian_blur`
-   - Receives `w` (width), `h` (height), and mismatched `dst_linesize` (from tmpbuf) and `src_linesize` (from in->linesize). The memcpy on lines 460-461 uses `w` as size but advances by linesize values, triggering out-of-bounds access when `src_linesize != w`.
+2. `bad.c:532` `gaussian_blur(ctx, width, height, tmpbuf, width, in->data[p], in->linesize[p])`
+   - Passes `in->data[p]` as source buffer and `in->linesize[p]` as source stride. The function uses `width` internally as the copy size, not knowing that source stride differs from width.
+
+3. `bad.c:460` `gaussian_blur` memcpy operation
+   - Copies `w` bytes using `memcpy(dst, src, w)` but advances pointers by `src_linesize` (`in->linesize[p]`), causing the source pointer to walk beyond the actual image data when linesize > width.

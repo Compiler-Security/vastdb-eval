@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": false,
-    "score": 3,
-    "reason": "Correctly identifies UAF but wrongly claims eval_tuple is called twice on the same rettv (lines 283 and 292 are mutually exclusive if/else branches). Misidentifies the trigger path — the real issue is the shallow copy into the tuple followed by tuple_free leaving rettv dangling, not a 'second call to eval_tuple'. Also incorrectly suggests rettv->vval.v_tuple was set before being freed; rettv_tuple_set is never called on the error path."
+    "correct": true,
+    "score": 8,
+    "reason": "Accurately identifies UAF mechanism (rettv shallow-copied into tuple, tuple_free frees shared data leaving rettv dangling). Traces correct trigger path through eval chain. Minor tangent about 'memory leak' (unfreed tuple) is not the primary issue."
   },
   "vastdb": {
     "correct": true,
     "score": 8,
-    "reason": "Accurately identifies the shallow copy mechanism in tuple_set_item (bad.c:1438), the rettv->tuple sharing of heap data, tuple_free freeing that shared data, and rettv retaining a dangling pointer. Trigger path line references are correct. Minor omission: doesn't discuss that the fix is an early-return guard on eval1 failure, but the root-cause and trigger-path description is fundamentally sound and matches the actual CVE-2025-55157 mechanism."
+    "reason": "Accurately identifies UAF mechanism and critical trigger path through eval_tuple failret. Concise and focused, no inaccuracies. Does not mention the eval9_nested_expr fix site but the core vulnerability analysis is sound."
   }
 }

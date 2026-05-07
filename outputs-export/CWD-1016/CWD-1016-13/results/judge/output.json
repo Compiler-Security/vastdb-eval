@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": false,
-    "score": 1,
-    "reason": "Baseline invents an OOB read theory in bmp_to_utf8 causing UB to return incorrect positive values, and misattributes the bug to the first loop's size calculation. The actual vulnerability is the second loop's missing j<0 check causing negative asclen accumulation. Baseline's speculative OOB-read-triggers-UB mechanism does not match the real root cause."
+    "score": 4,
+    "reason": "Correctly identifies the vulnerable function and the asclen+=j location, but the trigger mechanism is wrong. The explanation claims 'writing beyond the allocated buffer' (buffer overflow), but the actual bug is that bmp_to_utf8 can return -1 in the second pass because str!=NULL makes the length parameter matter (unilen-i can be <3 for 3-byte chars), causing asclen to decrement and the null terminator write to underflow (CWE-787 via negative offset, not overflow). Misses the core mismatch: first pass (str=NULL) bypasses UTF8_putc length checks; second pass (str!=NULL) does not."
   },
   "vastdb": {
-    "correct": true,
-    "score": 9,
-    "reason": "VAST DB correctly identifies that the second loop lacks error handling for bmp_to_utf8 return values, the negative j corrupts asclen via asclen += j (line 174), and the OOB write occurs at the null terminator (line 179). It accurately maps the trigger path and root cause. Minor omission: doesn't detail why bmp_to_utf8 returns -1 (UTF8_putc capacity mismatch), but the core vulnerability mechanism is fully covered."
+    "correct": false,
+    "score": 6,
+    "reason": "Correctly identifies the vulnerable function, the asclen+=j location, and the null-terminator write as the OOB point. Gets closer by mentioning 'first loop calculation differs from actual bytes written in the second loop', which hints at the core mismatch. However, the explanation is vague about the mechanism—does not explain that bmp_to_utf8 returns -1 in the second pass because len=min(4,unilen-i) fails UTF8_putc's checks (while the first pass with str=NULL bypasses them), nor that asclen is decremented (not overflowed) leading to a negative-offset OOB via the null terminator write."
   }
 }

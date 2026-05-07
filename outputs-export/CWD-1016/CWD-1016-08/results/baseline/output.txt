@@ -1,20 +1,5 @@
+
+
 ## Root Cause
 
-The vulnerability is an out-of-bounds write (CWE-787) in the `gauss` array. The `gauss` array is allocated with `filtersize` elements at line 385 (`s->gauss[i] = av_mallocz_array(filtersize, sizeof(*s->gauss[i]))`). However, when accessing the array at lines 504-505 and 519-520, the code uses `gauss[GINDX(filtersize, g)]` where `GINDX(s, i) = i - (s >> 2)`. Since `g` iterates from 0 to `filtersize-1`, the computed index `GINDX(filtersize, g)` ranges from `-filtersize/4` to `3*filtersize/4 - 1`. When `g = 0`, the index becomes negative (e.g., `-2` for `filtersize=9`), causing an out-of-bounds write to invalid memory locations.
-
-## Trigger Path
-
-1. `bad.c:643` `filter_frame`
-   - Entry point that receives input frame from filter link, calls `illumination_estimation`.
-
-2. `bad.c:627` `illumination_estimation`
-   - Calls `filter_grey_edge(ctx, in)` to estimate illumination.
-
-3. `bad.c:585` `filter_grey_edge`
-   - Calls `get_derivative(ctx, &td)` to compute derivatives.
-
-4. `bad.c:540` `get_derivative`
-   - Uses `s->difford` to determine which derivative orders to compute. Calls `get_deriv` with different `ord` values (0, 1, 2), which then invokes `ctx->internal->execute` with `slice_get_derivative`.
-
-5. `bad.c:473` `slice_get_derivative`
-   - At lines 503-505 (horizontal direction) or 518-520 (vertical direction), iterates `g` from 0 to `filtersize-1` and accesses `gauss[GINDX(filtersize, g)]` where `GINDX` produces negative indices when `g < filtersize/4`, triggering the out-of-bounds write.
+The vulnerability is an out-of-bounds write in the `gauss` array. The `GINDX(s, i)` macro computes `(i) - ((s) >> 2)`, which can produce negative indices when `

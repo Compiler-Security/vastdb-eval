@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": false,
-    "score": 1,
-    "reason": "Describes double-free order backwards (claims VIM_CLEAR first then vim_free second, but ASAN shows vim_free first then VIM_CLEAR second). Completely misses the quickfix list (qf_free_all) which is the actual trigger for the second free. The described path (mark_forget_file -> tagstack_clear_entry -> win_free) cannot cause double-free because VIM_CLEAR NULLs the pointer."
+    "correct": true,
+    "score": 8,
+    "reason": "Correctly identifies the CWE-415 double-free and the two freeing sites (tagstack_clear_entry via VIM_CLEAR in mark_forget_file, then direct vim_free in win_free). Trace from mark_forget_file to win_free is accurate. Minor inaccuracy: claims VIM_CLEAR 'does NOT update or clear the entries in the window's actual w_tagstack array', but item == &wp->w_tagstack[i], so VIM_CLEAR does set the array entry to NULL. Imprecise but does not undermine the overall correct root-cause analysis."
   },
   "vastdb": {
-    "correct": false,
-    "score": 1,
-    "reason": "Same fundamental error as baseline: wrong ordering and wrong trigger path. Also adds incorrect speculation about popup windows (win_free_popup) which does not match the ASAN stack trace showing entry through ex_bunload/win_close. Completely misses the quickfix list (qf_free_all) which is the actual mechanism for the second free."
+    "correct": true,
+    "score": 9,
+    "reason": "Correctly identifies the CWE-415 double-free and provides a precise, complete trigger path (win_free_popup → close_buffer → mark_forget_file → tagstack_clear_entry → win_free → vim_free). Accurately notes that VIM_CLEAR sets pointer to NULL and that win_free does not check if the pointer was already freed. Slightly imprecise about 'the entry remains in the w_tagstack array' (mark_forget_file compacts entries and decrements w_tagstacklen), but the overall analysis is sound and well-traced."
   }
 }

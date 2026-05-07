@@ -1,26 +1,25 @@
+
+
 ## Root Cause
 
-The vulnerability is a NULL pointer dereference in `ossl_quic_get_cipher_by_char` at line 321. The function `ciph` pointer is obtained from `ssl3_get_cipher_by_char` → `ssl3_get_cipher_by_id` → binary search. When searching for a cipher ID that doesn't exist in any of the cipher arrays (`tls13_ciphers`, `ssl3_ciphers`, `ssl3_scsvs`), the `ossl_bsearch` function returns NULL (line 255 in `ossl_bsearch` when `c != 0` and `OSSL_BSEARCH_VALUE_ON_NOMATCH` flag is not set). This NULL pointer then propagates back to `ossl_quic_get_cipher_by_char`, which dereferences it at line 321 (`ciph->algorithm2 & SSL_QUIC`) without any NULL check.
+The vulnerability is a NULL pointer dereference in the SSL/TLS cipher lookup chain. In `ossl_bsearch` (crypto/bsearch.c:254-255), when a key is not found in the binary search (`c != 0`) and the `OSSL_BSEARCH_VALUE_ON_NOMATCH` flag is not set, the pointer `p` is explicitly set to NULL and returned. When external input (a cipher character string) flows through the call chain to `ossl_quic_get_cipher_by_char` (ssl/quic/quic_impl.c:318-321), it receives a potentially NULL cipher pointer from `ssl3_get_cipher_by_char` without checking for NULL, then immediately dereferences it at line 321 to access `ciph->algorithm2`. This is a classic CWE-476 NULL pointer dereference where the sink assumes the value is always valid.
 
 ## Trigger Path
 
-1. `bad.c:318` `ossl_quic_get_cipher_by_char`
-   - Receives unsigned char pointer `p`, calls `ssl3_get_cipher_by_char(p)` at line 319
+1. `ssl/quic/quic_impl.c:318` `ossl_quic_get_cipher_by_char`
+   - External entry point that receives an unsigned char pointer from network/invoke; calls `ssl3_get_cipher_by_char` and dereferences result without NULL check.
 
-2. `bad.c:312` `ssl3_get_cipher_by_char`
-   - Constructs cipher ID from input bytes, calls `ssl3_get_cipher_by_id` at line 313
+2. `ssl/s3_lib.c:312` `ssl3_get_cipher_by_char`
+   - Constructs a cipher ID from the character bytes and calls `ssl3_get_cipher_by_id`.
 
-3. `bad.c:297` `ssl3_get_cipher_by_id`
-   - Creates a temporary SSL_CIPHER with the given ID, searches through cipher arrays via `OBJ_bsearch_ssl_cipher_id` at lines 302, 305, 308
+3. `ssl/s3_lib.c:297` `ssl3_get_cipher_by_id`
+   - Performs binary searches on cipher tables using `OBJ_bsearch_ssl_cipher_id` macro; may return NULL when cipher is not found.
 
-4. `bad.c:294` `OBJ_bsearch_ssl_cipher_id` (macro-generated function)
-   - The generated bsearch function that internally calls `OBJ_bsearch_ex_` at line 223-224
+4. `crypto/objects/obj_dat.c:265` `OBJ_bsearch_` (via macro wrapper)
+   - Wrapper around `OBJ_bsearch_ex_` with default flags (0), passes through the result.
 
-5. `bad.c:271` `OBJ_bsearch_ex_`
-   - Wrapper that calls `ossl_bsearch` at line 274
+5. `crypto/objects/obj_dat.c:271` `OBJ_bsearch_ex_`
+   - Calls `ossl_bsearch` and returns whatever pointer it gets.
 
-6. `bad.c:233` `ossl_bsearch`
-   - Binary search implementation that returns NULL at line 255 when cipher is not found and `OSSL_BSEARCH_VALUE_ON_NOMATCH` flag is not set (default flags = 0)
-
-7. `bad.c:321` (vulnerable sink)
-   - Dereferences `ciph` pointer without NULL check: `if ((ciph->algorithm2 & SSL_QUIC) == 0)`
+6. `crypto/bsearch.c:233` `ossl_bsearch`
+   - Binary search implementation; at lines 254-255, sets `p = NULL` when key not found and flag not set: `if (c != 0 && !(flags & OSSL_BSEARCH_VALUE_ON_NOMATCH)) p = NULL;`

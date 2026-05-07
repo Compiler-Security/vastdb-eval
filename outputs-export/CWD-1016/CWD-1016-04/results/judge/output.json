@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": false,
-    "score": 1,
-    "reason": "The baseline incorrectly identifies the root cause as a stride/dimension mismatch between init-time configuration and runtime frame data. The actual fix is adding `if (w < 3 || h < 3) return AVERROR(EINVAL)` in `ff_vmafmotion_init` to reject tiny dimensions. The real vulnerability is that the 5-tap convolution (radius=2) computes `borders_bottom = h - 3` and `borders_right = w - 3`; when w<3 or h<3, these produce negative loop indices, causing OOB writes (e.g. `dst[-1 * stride + j]`). The baseline's speculation about 'frame ref having different dimensions' and 'stride mismatch' is not what the fix addresses."
+    "score": 2,
+    "reason": "Claims dimension mismatch between s->width and ref's actual dimensions causes OOB write to s->temp_data. The actual fix is a min-dimension check (w<3||h<3) — convolution border logic produces negative loop indices with small inputs. The speculation about runtime frame-vs-init dimension mismatch is unsupported and not what the patch addresses."
   },
   "vastdb": {
     "correct": false,
     "score": 1,
-    "reason": "The vastdb explanation also incorrectly blames a 'stride mismatch between pre-computed buffer stride and actual frame linesize'. The real root cause is missing dimension validation (`w < 3 || h < 3`) in `ff_vmafmotion_init`. The 5-tap convolution filter has radius=2, so the border computations `borders_right = w-3` and `borders_bottom = h-3` go negative with tiny dimensions, producing out-of-bounds writes via negative indices in the convolution loops. The stride mismatch theory is not supported by the actual fix and misses the true trigger mechanism."
+    "reason": "Claims stride mismatch (passing ref->linesize[0] vs s->stride) causes OOB write. Using ref->linesize[0] as source stride is correct — src and dst strides are legitimately independent. The actual fix is validating w>=3 && h>=3 to prevent negative convolution loop bounds. Entire mechanism is misidentified."
   }
 }

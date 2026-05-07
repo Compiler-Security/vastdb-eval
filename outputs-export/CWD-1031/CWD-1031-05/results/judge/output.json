@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": false,
-    "score": 5,
-    "reason": "Correctly identifies the vulnerable line (270, missing NULL check on rmp->regprog->re_in_use) but the trigger path is wrong. Claims NULL from vim_regcomp() propagates directly through ExpandBufnames — but both callers (ExpandBufnames, buflist_findpat) check for NULL and return early. Misses the actual trigger: NFA-to-BT engine switch inside vim_regexec_string that sets regprog to NULL, affecting subsequent buffer iterations."
+    "score": 3,
+    "reason": "Correctly identifies the sink (line 270 NULL deref on rmp->regprog->re_in_use), but the trigger path is wrong: claims NULL comes from initial vim_regcomp() failure in ExpandBufnames/buflist_findpat, but those callers check for NULL and return early. Misses the critical NFA-to-backtracking engine fallback recompilation (lines 290-316) inside vim_regexec_string itself, where regprog is freed then reassigned, and if reassignment fails, regprog becomes NULL for subsequent loop iterations."
   },
   "vastdb": {
-    "correct": false,
-    "score": 5,
-    "reason": "Correctly identifies the vulnerable line (270, missing NULL check on rmp->regprog->re_in_use) but the trigger path is wrong. Claims NULL from vim_regcomp() propagates through ExpandBufnames — but callers check for NULL and return early. Also misses the NFA-to-BT engine-switch mechanism described in the actual patch ('rmp->regprog may become NULL when switching regexp engine'), instead presenting an oversimplified path that does not trigger in the bad code."
+    "correct": true,
+    "score": 7,
+    "reason": "Correctly identifies the NFA engine fallback recompilation path (vim_regfree at line 299 + vim_regcomp at line 305) as the mechanism that sets rmp->regprog to NULL, leading to the crash at line 270 on the next buffer-loop iteration. Minor imprecision ('uninitialized regprog', 'stale/dangling pointer') but the core trigger through the NFA-too-expensive path inside vim_regexec_string is accurately described."
   }
 }

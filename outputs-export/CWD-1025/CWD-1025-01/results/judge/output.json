@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": true,
-    "score": 9,
-    "reason": "Accurately identifies double-free root cause: _uhash_put's err handler calls valueDeleter (cacheDeleter→unref) which deletes CacheEntry, then caller's U_FAILURE check triggers delete result. Trigger path is complete, covering both rehash failure and count==length failure paths. Minor: line numbers reference original ICU source offsets rather than exact test file lines."
+    "correct": false,
+    "score": 5,
+    "reason": "Identifies the double-free root cause of CacheEntry but the trigger path is factually wrong: claims the second free occurs 'when the serviceCache Hashtable is destroyed', whereas the real mechanism is that _uhash_put's error handler (HASH_DELETE_KEY_VALUE -> cacheDeleter -> unref() -> delete this) performs the first free, then the explicit 'delete result' performs the second free immediately."
   },
   "vastdb": {
     "correct": true,
     "score": 9,
-    "reason": "Correctly identifies the double-free root cause and trigger path, including the specific error at bad.cpp:706 (count==length). Traces through Hashtable::put→uhash_put→_uhash_put→HASH_DELETE_KEY_VALUE→delete result. Slightly less comprehensive than baseline (only mentions one failure mode), but still fully accurate with no unsupported speculation."
+    "reason": "Correctly identifies the double-free of CacheEntry and accurately traces the complete trigger path: _uhash_put failure triggers HASH_DELETE_KEY_VALUE -> cacheDeleter -> unref() -> delete this (first free), then explicit delete result (second free). The explanation contains no unsupported speculation."
   }
 }

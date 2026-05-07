@@ -2,11 +2,11 @@
   "baseline": {
     "correct": true,
     "score": 10,
-    "reason": "Accurately identifies CWE-476 NULL pointer dereference: pmt_iod set to NULL at three locations in gf_m2ts_process_pmt (lines 402/408/417) and later dereferenced at m2tsdmx_declare_pid line 1428 without NULL check. Trigger path traced correctly through event dispatch. No unsupported speculation."
+    "reason": "Accurately identifies NULL source (lines 402/408/417), sink (line 1428 dereference without check), trigger path (process_pmt -> on_event -> setup_program -> declare_pid), and the stream types that reach the vulnerable code. No unsupported speculation."
   },
   "vastdb": {
     "correct": true,
     "score": 10,
-    "reason": "Also accurately identifies the same CWE-476 root cause, the three source locations where pmt_iod=NULL, the sink at line 1428, and the trigger path. No unsupported speculation. Both explanations are substantively equivalent and fully correct."
+    "reason": "Accurately identifies the same root cause, source/sink lines, and trigger path. Includes an unnecessary but harmless initializer step. No unsupported speculation. Matches the actual fix (adding NULL guard at line 1428)."
   }
 }

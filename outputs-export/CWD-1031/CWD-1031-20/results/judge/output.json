@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 10,
-    "reason": "Accurately identifies the null pointer dereference in PID_IS_INPUT, the call chain through naludmx_set_dolby_vision at bad.c:1503, and explains why ctx->opid can be NULL (timescale-dependent creation at line 1018). Trigger path is detailed and complete with correct line numbers. No unsupported speculation."
+    "score": 9,
+    "reason": "Correctly identifies NULL pointer dereference in PID_IS_INPUT and traces full trigger path from naludmx_process through DV_RPU parsing to naludmx_set_dolby_vision calling gf_filter_pid_set_property with NULL ctx->opid (due to timescale=0). Minor imprecision in phrasing about timescale being 'never set' vs remaining 0."
   },
   "vastdb": {
     "correct": true,
     "score": 10,
-    "reason": "Accurately identifies the null pointer dereference in PID_IS_INPUT, the call chain from naludmx_set_dolby_vision (bad.c:1503), explains why ctx->opid can be NULL (timescale check at line 1018), and correctly identifies the fix (adding if (!ctx->opid) return). Trigger path is accurate with correct line numbers. No unsupported speculation."
+    "reason": "Accurately identifies the root cause (opid=NULL when timescale=0, line 1018 condition fails), correctly traces the full trigger path from naludmx_configure_pid through naludmx_process/parse_nal_hevc to the PID_IS_INPUT dereference, and is more precise about the timescale==0 condition. No unsupported speculation."
   }
 }

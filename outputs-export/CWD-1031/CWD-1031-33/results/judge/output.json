@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 6,
-    "reason": "Correctly identifies the NULL dereference in work_stuff_copy_to_from's strlen(btypevec[i]) call, but misses the critical upstream trigger: register_Btype's NULL is left unpopulated when demangle_class_name fails inside do_type (line 494-503). Also does not mention the squangle_mop_up numb=0 fix."
+    "score": 10,
+    "reason": "Correctly identifies the root cause (register_Btype sets NULL; demangle_class_name failure skips remember_Btype, leaving NULL in btypevec) and the sink (work_stuff_copy_to_from calls strlen on the NULL entry at line 1091). Trigger path is accurate with correct line numbers. No unsupported speculation."
   },
   "vastdb": {
     "correct": true,
-    "score": 9,
-    "reason": "Accurately traces full data-flow: register_Btype sets NULL placeholder -> do_type calls register_Btype but skips remember_Btype when demangle_class_name fails -> work_stuff_copy_to_from dereferences NULL at strlen(btypevec[i]). Correctly links to the conditional remember_Btype call at line 497-503."
+    "score": 10,
+    "reason": "Correctly identifies the same root cause and trigger path: register_Btype NULL initialization, demangle_class_name failure skipping remember_Btype, and the strlen dereference in work_stuff_copy_to_from. Provides additional contextual call chain (demangle_signature->do_type->demangle_fund_type). Accurate, no unsupported speculation."
   }
 }

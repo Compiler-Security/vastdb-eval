@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": true,
-    "score": 8,
-    "reason": "Correctly identifies the calloc-before-guard ordering as the root cause and traces the fgError/exit path. Misses that freeglut_return_if_fail at lines 279/283 also leak the same allocation."
+    "score": 9,
+    "reason": "Correctly identifies CWE-401 memory leak root cause: menuEntry allocated at line 276 before the fgState.ActiveMenus check at line 280, and fgError (calling exit(1)) at line 281 terminates without freeing it. Trigger path is accurate with correct line numbers and data-flow. No unsupported speculation."
   },
   "vastdb": {
     "correct": true,
-    "score": 8,
-    "reason": "Same accurate analysis of the calloc-before-guard ordering and fgError/exit leak path with a more detailed trigger-path breakdown. Misses the same early-return leak paths."
+    "score": 9,
+    "reason": "Correctly identifies the same CWE-401 vulnerability with matching root cause explanation. Accurately traces the trigger path from allocation (line 276) through condition check (line 280) to fgError/exit(1) sink (line 281/266). No errors or unsupported speculation. Both explanations are essentially equivalent in quality."
   }
 }

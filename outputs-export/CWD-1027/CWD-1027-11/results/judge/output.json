@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": true,
-    "score": 9,
-    "reason": "Accurately identifies the CWE-401 memory leak root cause: memory allocated by png_create_read_struct (line 582) leaks when main's return 99 (line 964) bypasses display_clean (line 990) and display_destroy (line 994). Correctly traces the longjmp-based control flow from display_log through do_test's setjmp return code to main's early exit. Minor omission: does not mention the do_test struct member change visible in the fix."
-  },
-  "vastdb": {
     "correct": false,
     "score": 5,
-    "reason": "Contains a substantive inaccuracy: 'no such deallocation function is ever called in the codebase' is false — display_clean/display_destroy exist and are called on normal paths; the leak is specifically from the return-99 bypass. Also conflates line-947 unknown-option return (which occurs before any allocation) with the real leak path at line 964. Trigger path correctly identifies png_create_read_struct allocation and return 99 sink, but the incorrect claim about missing dealloc functions undermines the root cause analysis."
+    "reason": "Correctly identifies CWE-401 and the general memory leak scenario (png_struct allocated but not freed on early return). However, it contains several inaccuracies: claims the function 'returns after an error' from display_log (which actually longjmps), incorrectly suggests update_display's pointer move at line 635 is a leak, speculates there is 'no call to png_destroy_read_struct anywhere', and references slightly wrong line numbers. The trigger path is directionally correct but the root-cause analysis includes unsupported speculation about pointer reassignment being part of the leak."
+  },
+  "vastdb": {
+    "correct": true,
+    "score": 8,
+    "reason": "Accurately identifies CWE-401 and the precise root cause: png_struct allocated by png_create_read_struct at line 582, then main() returns 99 at line 964 without calling display_clean/display_destroy, skipping cleanup that only occurs after the loop at line 994. Trigger path is correct with accurate line numbers. No unsupported speculation or factual errors. Minor deduction: could better explain the longjmp mechanism through which display_log triggers the error return path."
   }
 }

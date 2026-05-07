@@ -1,19 +1,21 @@
-Based on my code analysis and the VAST DB queries, I now have enough information to provide the vulnerability analysis.
+
+
+Based on code analysis and the VAST DB query confirming the location of `read_header` (line 671), I now have enough evidence to provide the analysis.
 
 ## Root Cause
 
-The vulnerability is a CWE-401 memory leak in the `avio_alloc_context` function at line 491 of `bad.c`. An `AVIOContext` structure is allocated via `av_malloc(sizeof(AVIOContext))` but is never freed in certain error paths. Specifically, in `wtvfile_open_sector` (line 615), when `avio_alloc_context` returns a valid pointer but the caller (`read_header`) encounters an error (e.g., from `parse_chunks` at line 709, or from `avio_seek` at line 714), the function returns early without freeing the `AVIOContext` allocated at line 491. The memory remains allocated indefinitely because there is no corresponding `avio_context_free` call for this early-exit path.
+The vulnerability is CWE-401 (Missing Release of Memory after Effective Lifetime). The AVIOContext structure is allocated at line 491 via `av_malloc(sizeof(AVIOContext))` in the `avio_alloc_context` function. This memory should be freed via `wtvfile_close()` when done. However, in `read_header` at lines 709-711, when `parse_chunks()` returns an error, the function returns immediately without calling `wtvfile_close(wtv->pb)` to free the allocated AVIOContext. The fix (shown in good.c lines 710-713) adds `wtvfile_close(wtv->pb)` before returning the error, which properly frees the memory.
 
 ## Trigger Path
 
 1. `bad.c:671` `read_header`
-   - Entry point that sets up WtvContext and opens timeline file via `wtvfile_open`
+   - Entry point function that parses WTV file format headers
 
-2. `bad.c:703` `wtvfile_open` (macro → `wtvfile_open2`)
-   - Calls `wtvfile_open_sector` to open the timeline file, receives `AVIOContext *pb`
+2. `bad.c:703` `wtvfile_open`
+   - Calls `wtvfile_open2` (via macro at line 665) to open the timeline file, stores result in `wtv->pb`
 
 3. `bad.c:529` `wtvfile_open_sector`
-   - Allocates AVIOContext at line 615 via `avio_alloc_context(buffer, ...)`
+   - Calls `avio_alloc_context` at line 615 to allocate an AVIOContext
 
 4. `bad.c:482` `avio_alloc_context`
-   - **Vulnerable operation**: Line 491 allocates `AVIOContext *s = av_malloc(sizeof(AVIOContext))` but this memory is not freed when the caller encounters errors and returns early without proper cleanup
+   - The vulnerable operation at line 491: `AVIOContext *s = av_malloc(sizeof(AVIOContext))` allocates memory that is never freed when error paths in `read_header` (line 711) return without cleanup

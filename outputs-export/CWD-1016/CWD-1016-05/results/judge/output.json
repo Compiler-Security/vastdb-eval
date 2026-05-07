@@ -1,12 +1,12 @@
 {
   "baseline": {
     "correct": false,
-    "score": 4,
-    "reason": "Partially identifies the crash location (dst[1] = src[1]) and chroma subsampling as a factor, but adds significant unsupported speculation about 'format descriptor manipulation/inconsistency' and 'more planes than nb_planes' which are not the actual root cause. The real issue is simply that gaussian_blur unconditionally writes dst[1] without checking if w >= 2, as confirmed by the fix adding if(w > 1) guards."
+    "score": 1,
+    "reason": "Baseline claims the root cause is a stride/linesize-vs-width mismatch, but the actual fix adds bounds checks (if w>1, w>2, w>3) for small widths. No linesize mismatch exists in the vulnerability — the OOB is simply writing dst[1] when plane->width <= 1. The entire stride-mismatch theory is unsupported speculation."
   },
   "vastdb": {
     "correct": true,
-    "score": 9,
-    "reason": "Accurately identifies the root cause: gaussian_blur unconditionally writes to dst[1] without checking w >= 2, triggered when chroma subsampling (hsub=1) produces small widths (0 or 1) for chroma planes. Trigger path is clean and precise, with no unsupported speculation. The fix adding if(w > 1) directly confirms this analysis."
+    "score": 8,
+    "reason": "Correctly identifies the root cause: plane->width becomes 0 or 1 for small inputs after chroma subsampling, and gaussian_blur unconditionally writes to dst[1] without checking if width is large enough. The output is truncated (cuts off mid-sentence before covering dst[i] and dst[i+1] post-loop accesses), but its core analysis is accurate."
   }
 }

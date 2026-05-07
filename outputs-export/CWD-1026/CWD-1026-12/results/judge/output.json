@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": true,
-    "score": 7,
-    "reason": "Correctly identifies the UAF root cause (static saved_sym dangling after free(symtab)) but the trigger path is presented as a single linear flow without explicitly showing the cross-section/cross-invocation nature. The description says 'persists beyond the function call' but doesn't clarify that separate debug section calls are required."
+    "correct": false,
+    "score": 5,
+    "reason": "Correctly identifies CWE-416 and static saved_sym as root cause, but the trigger path is materially wrong: it states the UAF occurs 'within the same apply_relocations loop' with free(symtab) at line 583 followed by access at line 347, but in reality free(symtab) is AFTER the entire for loop — the UAF happens ACROSS calls, not intra-call."
   },
   "vastdb": {
     "correct": true,
     "score": 9,
-    "reason": "Accurately identifies the UAF root cause and clearly explains the cross-invocation trigger: saved_sym retains stale value across invocations, and when apply_relocations processes a different section, the dangling pointer to previously-freed symtab is dereferenced via saved_sym->st_value. Correctly covers both MSP430 and MN10300 cases."
+    "reason": "Correctly identifies CWE-416, static saved_sym root cause, and accurately captures the cross-call trigger mechanism ('in a subsequent call AFTER free(symtab) has been executed'). The trigger path explicitly recognizes that the dangling pointer persists across calls to apply_relocations."
   }
 }

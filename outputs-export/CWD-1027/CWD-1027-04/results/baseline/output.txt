@@ -1,14 +1,17 @@
+
+
 ## Root Cause
 
-The vulnerability is a missing memory release in the `filter_frame` function. The object `out` is an `AVFrame*` allocated at line 813 by calling `ff_get_video_buffer()`. This function allocates an AVFrame structure containing buffer references (in the `buf[]` array). When `create_filtergraph()` fails at line 890-891 and returns an error, the function exits via `return res;` without freeing the previously allocated `out` frame, causing a memory leak. The known vulnerable location at line 813 is where the allocation occurs, but the actual CWE-401 trigger happens at line 890-891 where the allocated `out` is not released before returning on the error path.
+The vulnerability is a missing memory release for the `AVFrame *out` allocated at line 813 via `ff_get_video_buffer()`. The output frame is allocated but never freed when `create_filtergraph()` fails at line 889 (returns negative), causing an early return at line 891 without releasing `out`. Additionally, the RGB buffers `s->rgb[0]`, `s->rgb[1]`, `s->rgb[2]` and dither scratch buffers allocated at lines 859-873 are never freed in any code path, creating a secondary leak. The function returns without freeing these resources, leading to CWE-401.
 
 ## Trigger Path
 
 1. `bad.c:805` `filter_frame`
-   - Entry point function that processes video frames through a filter; receives an input frame `in` and must allocate output frame `out`
+   - Entry point - called by FFmpeg filter framework to process a video frame
 
-2. `bad.c:813` `ff_get_video_buffer(outlink, outlink->w, outlink->h)`
-   - Allocates an AVFrame structure with internal buffer references; the returned pointer is stored in `out` but not freed on error paths
+2. `bad.c:813` `ff_get_video_buffer`
+   - Allocates output AVFrame via internal `ff_default_get_video_buffer` (line 800)
+   - Returns the newly allocated `out` frame to the caller
 
-3. `bad.c:890-891` `create_filtergraph` failure path
-   - When `create_filtergraph` returns a negative error code, the function returns immediately without calling `av_frame_free(&out)`, causing the memory leak
+3. `bad.c:889` `create_filtergraph`
+   - Called with `out` frame; on failure (`

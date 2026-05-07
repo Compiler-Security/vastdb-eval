@@ -2,11 +2,11 @@
   "baseline": {
     "correct": true,
     "score": 10,
-    "reason": "Correctly identifies UAF (CWE-416), accurately traces the full trigger path from CloneImage through MSLPushImage/DestroyMSLInfo to the DestroyImage(msl_image) sink. No unsupported speculation. Matches cve.json and the code diff (removal of DestroyImage in WriteMSLImage)."
+    "reason": "Accurately identifies the UAF in WriteMSLImage: CloneImage creates msl_image, ProcessMSLScript stores it via MSLPushImage into msl_info.image, DestroyMSLInfo frees it, then DestroyImage(msl_image) on line 1233 accesses freed memory. Correct line references, no unsupported speculation."
   },
   "vastdb": {
     "correct": true,
     "score": 10,
-    "reason": "Correctly identifies the vulnerability (double-free variant of UAF), accurately describes the same trigger path with VAST DB references. No unsupported speculation. Matches the code diff perfectly. Terminology 'double-free' is a reasonable description of the same bug, though CWE-416 is the official classification."
+    "reason": "Accurately identifies the same UAF with identical root cause and trigger path. References VAST DB UIDs for data-flow confirmation of the call chain. Clear, correct, and no unsupported speculation."
   }
 }

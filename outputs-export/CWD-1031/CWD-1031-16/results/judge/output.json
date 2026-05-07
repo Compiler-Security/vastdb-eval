@@ -1,12 +1,12 @@
 {
   "baseline": {
-    "correct": false,
-    "score": 2,
-    "reason": "Describes the wrong trigger path: claims the issue is gf_xml_locate_entity returning NULL with needs_text=TRUE (entity name too short), leading to NULL-ent dereference. But the actual root cause is ent being non-NULL while ent->value is NULL (incomplete entity parsed by xml_sax_parse_entity). The fix is in xml_sax_parse_entity (syntax error on missing value) and a NULL guard in xml_sax_append_string, not in the !ent logic the baseline focuses on."
+    "correct": true,
+    "score": 9,
+    "reason": "Correctly identifies the NULL ptr dereference at xml_sax_append_string:154 via strlen(NULL). Precisely describes the malformed entity trigger: when closing quote never appears in xml_sax_parse_entity, ent->value remains NULL after GF_SAFEALLOC. Accurate trigger path from gf_xml_sax_parse -> gf_xml_sax_parse_intern -> locate entity -> pass ent->value to xml_sax_append_string -> strlen(NULL). No unsupported speculation."
   },
   "vastdb": {
     "correct": true,
-    "score": 7,
-    "reason": "Correctly identifies the root cause: entity allocated via GF_SAFEALLOC is added to the list before its value field is initialized, leaving it NULL. Correctly traces the data flow from allocation to ent->value dereference through xml_sax_append_string to strlen. Minor imprecision: cites error paths at lines 193-196/202-203 which return before the entity is added, rather than the actual path (while-loop exit without hitting the separator). Overall mechanism and trigger path are accurate."
+    "score": 8,
+    "reason": "Correctly identifies the NULL ptr dereference root cause and trigger path. Slightly less precise than baseline: uses vague phrasing ('parsing errors or incomplete XML') instead of specifying that the entity closing quote is never found before buffer end. Mentions the correct source (GF_SAFEALLOC at line 199) and sink (strlen at line 154). No unsupported speculation."
   }
 }
