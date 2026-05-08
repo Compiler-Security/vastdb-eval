@@ -11,10 +11,11 @@ Analyze the vulnerable code in this directory. Avoid guessing beyond what the co
 # Workflow
 
 1. Use text search/read tools only enough to locate the known vulnerable anchors in source code.
-2. Before writing VAST DB Cypher queries, load the `write-cypher` skill. Load the `understand-mlir-schema` skill when you need schema details to construct queries or interpret returned records.
-3. Treat VAST DB as a code navigation tool. Starting from the current anchors, use VAST DB to find relevant symbol, caller, callee, def, or use locations.
-4. Alternate between VAST DB and source reading: query VAST DB for the next interesting locations, inspect those source locations with text search/read tools, then use what you learned as anchors for the next VAST DB query.
-5. Execute at least one `run_cypher` query. If a VAST DB query fails or returns no complete call-chain/data-flow path, try narrower VAST DB navigation queries before relying only on text search/read tools.
+2. Use VAST DB as a code navigation tool. Before writing VAST DB Cypher queries, load the `write-cypher` skill and follow its Required Navigation Attempt and Navigation State Machine. Load the `understand-mlir-schema` skill when you need schema details to construct queries or interpret returned records.
+3. For each source location anchor, run a VAST DB navigation attempt: map the source location to operation `uid`s, select the relevant operation `uid`, run `Dataflow: Use-Def Chain`, then run at least one next query from the returned definition.
+4. Do not stop after `Dataflow: Use-Def Chain`. After it returns a definition, continue with the next query required by that definition kind in the Navigation State Machine.
+5. Read source locations returned by VAST DB before drawing conclusions from them.
+6. Do not stop after only location lookup, name lookup, enclosing-function lookup, or call-chain lookup. If a query does not return a useful path, continue with a narrower one-step navigation query from the current operation `uid` before falling back to text-only analysis.
 
 # Output Schema
 
