@@ -520,10 +520,26 @@ static double do_block_ssd16(BM3DContext *s, PosCode *pos,
                              int r_y, int r_x);
 
 static void get_block_row(const uint8_t *srcp, int src_linesize,
-                          int y, int x, int block_size, float *dst);
+                          int y, int x, int block_size, float *dst)
+{
+    const uint8_t *src = srcp + y * src_linesize + x;
+    int j;
+
+    for (j = 0; j < block_size; j++) {
+        dst[j] = src[j];
+    }
+}
 
 static void get_block_row16(const uint8_t *srcp, int src_linesize,
-                            int y, int x, int block_size, float *dst);
+                            int y, int x, int block_size, float *dst)
+{
+    const uint16_t *src = (uint16_t *)srcp + y * src_linesize / 2 + x;
+    int j;
+
+    for (j = 0; j < block_size; j++) {
+        dst[j] = src[j];
+    }
+}
 
 static void basic_block_filtering(BM3DContext *s, const uint8_t *src, int src_linesize,
                                   const uint8_t *ref, int ref_linesize,

@@ -5,6 +5,6 @@
     "version": "ccf4ab8",
     "patch": "0749082",
     "file": "libavfilter/vf_bm3d.c",
-    "source": "block_matching(s, ref, ref_linesize, j, i, plane, jobnr);",
+    "source": "const int block_pos_bottom = height - s->block_size;",
     "sink": "dst[j] = src[j];"
 }
